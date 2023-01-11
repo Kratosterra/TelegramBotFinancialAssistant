@@ -682,7 +682,7 @@ print(return_spend_of_period('test', datetime.datetime(2023, 1, 10), datetime.da
 print(return_all_categories('test'))
 
 count_remained('test')
-delete_spend_by_id('test', 25)
+delete_spend_by_id('test', 26)
 add_spend('test', 11, "EW")
 delete_income_by_id('test', 1)
 set_limit('test', 600)
