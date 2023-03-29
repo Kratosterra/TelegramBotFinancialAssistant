@@ -5,10 +5,11 @@ import sqlite3
 import time
 from sqlite3 import Connection, Cursor
 
+import helpers.curency_parser
 import helpers.helpers
 
 logging.basicConfig(format='%(asctime)s: %(levelname)s: %(message)s', level=logging.DEBUG)
-currency = {'rubles': 'RUB', 'euro': 'EUR', 'Yen': 'JPY', 'yuan': 'CNY'}
+currency = {'rubles': 'RUB', 'euro': 'EUR', 'yen': 'JPY', 'yuan': 'CNY'}
 
 
 def initialize_user(user_id):
@@ -95,7 +96,7 @@ def set_limit(user_id, limit):
     logging.debug(f"Устанавливаем лимит средств для пользователя с id: {user_id}.")
     try:
         sql: Cursor = db.cursor()
-        sql.execute(f"UPDATE user_data SET 'limit' = {limit} WHERE id = 1")
+        sql.execute(f"UPDATE user_data SET 'limit' = ? WHERE id = 1", (limit,))
         db.commit()
     except sqlite3.Error as error:
         logging.error(f"Ошибка при работе с базой данных: '{error}'.Пользователь с id: '{user_id}'")
@@ -112,7 +113,7 @@ def set_remained(user_id, remained):
     logging.debug(f"Устанавливаем остаток средств для пользователя с id: {user_id}.")
     try:
         sql: Cursor = db.cursor()
-        sql.execute(f"UPDATE user_data SET 'remainer' = {remained} WHERE id = 1")
+        sql.execute(f"UPDATE user_data SET remainer = ? WHERE id = 1", (remained,))
         db.commit()
     except sqlite3.Error as error:
         logging.error(f"Ошибка при работе с базой данных: '{error}'.Пользователь с id: '{user_id}'")
@@ -129,7 +130,7 @@ def set_goal(user_id, goal):
     logging.debug(f"Устанавливаем цель для пользователя с id: {user_id}.")
     try:
         sql: Cursor = db.cursor()
-        sql.execute(f"UPDATE user_data SET 'goal' = {goal} WHERE id = 1")
+        sql.execute(f"UPDATE user_data SET goal = ? WHERE id = 1", (goal,))
         db.commit()
     except sqlite3.Error as error:
         logging.error(f"Ошибка при работе с базой данных: '{error}'.Пользователь с id: '{user_id}'")
@@ -240,7 +241,7 @@ def add_new_subcategory(user_id, category, subcategory):
     db: Connection = sqlite3.connect(f'data/{user_id}.db')
     try:
         sql: Cursor = db.cursor()
-        sql.execute(f"SELECT sub_categories FROM categories WHERE name_of_category = '{category}'")
+        sql.execute(f"SELECT sub_categories FROM categories WHERE name_of_category = ?", (category,))
         tuple_data = sql.fetchone()
         if tuple_data is None:
             logging.error(f"Нет родительской категории. Пользователь с id: '{user_id}'")
@@ -273,7 +274,7 @@ def delete_event_spend(user_id, name_of_spending):
     db: Connection = sqlite3.connect(f'data/{user_id}.db')
     try:
         sql: Cursor = db.cursor()
-        sql.execute(f"DELETE from event_spend where name_of_spending = '{name_of_spending}'")
+        sql.execute(f"DELETE from event_spend where name_of_spending = ?", (name_of_spending,))
         db.commit()
     except sqlite3.Error as error:
         logging.error(f"Ошибка при работе с базой данных: '{error}'.Пользователь с id: '{user_id}'")
@@ -290,7 +291,7 @@ def delete_event_income(user_id, name_of_income):
     db: Connection = sqlite3.connect(f'data/{user_id}.db')
     try:
         sql: Cursor = db.cursor()
-        sql.execute(f"DELETE from event_income where name_of_income = '{name_of_income}'")
+        sql.execute(f"DELETE from event_income where name_of_income = ?", (name_of_income,))
         db.commit()
     except sqlite3.Error as error:
         logging.error(f"Ошибка при работе с базой данных: '{error}'.Пользователь с id: '{user_id}'")
@@ -307,7 +308,7 @@ def delete_category(user_id, name_of_category):
     db: Connection = sqlite3.connect(f'data/{user_id}.db')
     try:
         sql: Cursor = db.cursor()
-        sql.execute(f"DELETE from categories where name_of_category = '{name_of_category}'")
+        sql.execute(f"DELETE from categories where name_of_category = ?", (name_of_category,))
         db.commit()
     except sqlite3.Error as error:
         logging.error(f"Ошибка при работе с базой данных: '{error}'.Пользователь с id: '{user_id}'")
@@ -324,7 +325,7 @@ def delete_subcategory(user_id, category, subcategory):
     db: Connection = sqlite3.connect(f'data/{user_id}.db')
     try:
         sql: Cursor = db.cursor()
-        sql.execute(f"SELECT sub_categories FROM categories WHERE name_of_category = '{category}'")
+        sql.execute(f"SELECT sub_categories FROM categories WHERE name_of_category = ?", (category,))
         tuple_data = sql.fetchone()
         if tuple_data is None:
             logging.error(f"Нет родительской категории. Пользователь с id: '{user_id}'")
@@ -369,13 +370,14 @@ def execute_events(user_id):
                     time_event = datetime.datetime.strftime(i, '%Y-%m-%d')
                     all_events_spend[num_of_spend] = (
                         user_id, row[1], row[0], "event", row[2], row[3], time_event)
+                    num_of_spend += 1
             else:
                 time_last_execution = datetime.datetime.strptime(row[5], '%Y-%m-%d')
                 execution_date = helpers.helpers.get_dates_with_date(int(row[4]), time_last_execution, utctime, False)
                 for i in execution_date:
                     time_event = datetime.datetime.strftime(i, '%Y-%m-%d')
                     all_events_spend[num_of_spend] = (user_id, row[1], row[0], "event", row[2], row[3], time_event)
-            num_of_spend += 1
+                    num_of_spend += 1
         num_of_spend = 0
         for row in sql.execute(f"SELECT * FROM event_income"):
             if row[3] is None:
@@ -384,13 +386,14 @@ def execute_events(user_id):
                 for i in execution_date:
                     time_event = datetime.datetime.strftime(i, '%Y-%m-%d')
                     all_events_income[num_of_spend] = (user_id, row[1], row[0], "event", time_event)
+                    num_of_spend += 1
             else:
                 time_last_execution = datetime.datetime.strptime(row[3], '%Y-%m-%d')
                 execution_date = helpers.helpers.get_dates_with_date(int(row[2]), time_last_execution, utctime, False)
                 for i in execution_date:
                     time_event = datetime.datetime.strftime(i, '%Y-%m-%d')
                     all_events_income[num_of_spend] = (user_id, row[1], row[0], "event", time_event)
-            num_of_spend += 1
+                    num_of_spend += 1
         for i in all_events_spend.keys():
             spend = str(all_events_spend[i][2])
             sql.execute("UPDATE event_spend SET last_indexed = ? WHERE name_of_spending = ?", (utctime_str, spend))
@@ -427,6 +430,7 @@ def return_all_spends(user_id):
         sql: Cursor = db.cursor()
         for row in sql.execute(f"SELECT * FROM spend"):
             all_spend[row[0]] = {}
+            all_spend[row[0]]["id"] = row[0]
             all_spend[row[0]]["name_of_spend"] = row[1]
             all_spend[row[0]]["type_of_spend"] = row[2]
             all_spend[row[0]]["value_of_spend"] = row[3]
@@ -446,22 +450,23 @@ def return_all_incomes(user_id):
     logging.debug(f"Возвращаем все доходы пользователя с id: {user_id}.")
     # Подключаем базу данных определённого пользователя.
     db: Connection = sqlite3.connect(f'data/{user_id}.db')
-    all_spend = {}
+    all_incomes = {}
     try:
         sql: Cursor = db.cursor()
         for row in sql.execute(f"SELECT * FROM income"):
-            all_spend[row[0]] = {}
-            all_spend[row[0]]["name_of_income"] = row[1]
-            all_spend[row[0]]["type_of_income"] = row[2]
-            all_spend[row[0]]["value_of_income"] = row[3]
-            all_spend[row[0]]["date_of_income"] = row[4]
+            all_incomes[row[0]] = {}
+            all_incomes[row[0]]["id"] = row[0]
+            all_incomes[row[0]]["name_of_income"] = row[1]
+            all_incomes[row[0]]["type_of_income"] = row[2]
+            all_incomes[row[0]]["value_of_income"] = row[3]
+            all_incomes[row[0]]["date_of_income"] = row[4]
     except sqlite3.Error as error:
         logging.error(f"Ошибка при работе с базой данных: '{error}'.Пользователь с id: '{user_id}'")
         return {}
     finally:
         if db:
             db.close()
-    return all_spend
+    return all_incomes
 
 
 def return_spend_of_period(user_id, start, end, this_moths=False):
@@ -536,7 +541,7 @@ def delete_spend_by_id(user_id, spend_id):
     db: Connection = sqlite3.connect(f'data/{user_id}.db')
     try:
         sql: Cursor = db.cursor()
-        sql.execute(f"DELETE from spend where id = {spend_id}")
+        sql.execute(f"DELETE from spend where id = ?", (spend_id,))
         db.commit()
     except sqlite3.Error as error:
         logging.error(f"Ошибка при работе с базой данных: '{error}'.Пользователь с id: '{user_id}'")
@@ -553,7 +558,7 @@ def delete_income_by_id(user_id, income_id):
     db: Connection = sqlite3.connect(f'data/{user_id}.db')
     try:
         sql: Cursor = db.cursor()
-        sql.execute(f"DELETE from income where id = {income_id}")
+        sql.execute(f"DELETE from income where id = ?", (income_id,))
         db.commit()
     except sqlite3.Error as error:
         logging.error(f"Ошибка при работе с базой данных: '{error}'.Пользователь с id: '{user_id}'")
@@ -651,6 +656,57 @@ def check_limit(user_id):
         return False
 
 
+def get_user_currency(user_id):
+    # Подключаем базу данных определённого пользователя.
+    db: Connection = sqlite3.connect(f'data/{user_id}.db')
+    logging.debug(f"Получаем валюту для пользователя с id: {user_id}.")
+    currency = ""
+    try:
+        sql: Cursor = db.cursor()
+        sql.execute(f"SELECT * FROM user_data WHERE id = 1")
+        currency = sql.fetchone()[4]
+    except sqlite3.Error as error:
+        logging.error(f"Ошибка при работе с базой данных: '{error}'.Пользователь с id: '{user_id}'")
+        return currency
+    finally:
+        if db:
+            db.close()
+    return currency
+
+
+def set_user_currency(user_id, new_currency):
+    # Подключаем базу данных определённого пользователя.
+    db: Connection = sqlite3.connect(f'data/{user_id}.db')
+    logging.debug(f"Меняем валюту для пользователя с id: {user_id}.")
+    try:
+        sql: Cursor = db.cursor()
+        sql.execute(f"UPDATE user_data SET currency = ? WHERE id = 1", (new_currency,))
+        db.commit()
+    except sqlite3.Error as error:
+        logging.error(f"Ошибка при работе с базой данных: '{error}'. Пользователь с id: '{user_id}'")
+        return False
+    finally:
+        if db:
+            db.close()
+    return True
+
+
+def recount_all_values_of_user(user_id, exchange_rate):
+    pass
+
+
+def recount_values_in_new_currency(user_id, to_currency):
+    logging.debug(f"Пересчитываем валюту для пользователя с id: {user_id}.")
+    now_currency = get_user_currency(user_id)
+    exchange_rate = helpers.curency_parser.get_exchange_rate(now_currency, to_currency)
+    recount_all_values_of_user(user_id, exchange_rate)
+    set_user_currency(user_id, to_currency)
+
+
+def transfer_remained_from_past_months(user_id):
+    pass
+
+
 initialize_user("test")
 add_new_category('test', "Еда")
 add_new_category('test', "да")
@@ -667,10 +723,6 @@ add_event_spend('test', 10.4, "GAMES", 10)
 add_event_income('test', 10.12, "Зарплата", 10)
 add_event_income('test', 10.2, "Музыка", 9)
 add_event_income('test', 10.4, "GAMES", 9)
-delete_event_income('test', 'GAMES')
-delete_event_income('test', 'Музыка')
-delete_category('test', 'да')
-delete_subcategory('test', 'Еда', 'd')
 
 execute_events('test')
 
@@ -692,3 +744,8 @@ print(get_limit('test'))
 print(get_goal('test'))
 print(check_limit('test'))
 print(check_goal('test'))
+add_income('test', 100)
+add_income('test', 100)
+delete_income_by_id('test', 6)
+delete_spend_by_id('test', 12)
+# delete_income_by_id("test", 1)
