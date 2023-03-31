@@ -2,7 +2,15 @@ import datetime
 from datetime import timedelta
 
 
-def get_dates_with_date(date_of_months, start, end, need_first_date=True):
+def get_dates_with_date(date_of_months: int, start: datetime, end: datetime, need_first_date=True) -> list:
+    """
+    Возвращает все даты во временном отрезке, которые совпадают с датой переданной в функцию.
+    :param date_of_months: Дата.
+    :param start: Начало временного периода.
+    :param end: Конецу временного периода.
+    :param need_first_date: Нужна ли первая дата.
+    :return: Лист дат.
+    """
     delta = end - start
     dates_of_one_date = []
     n = 0
@@ -18,7 +26,14 @@ def get_dates_with_date(date_of_months, start, end, need_first_date=True):
     return dates_of_one_date
 
 
-def get_dates_of_period(start, end, this_moths=False):
+def get_dates_of_period(start: datetime, end: datetime, this_moths=False) -> list:
+    """
+    Возвращает все даты в определенном промежутке либо за текущий месяц.
+    :param start: Начало временного промежутка.
+    :param end: Конец временного промежутка.
+    :param this_moths: В этом ли месяце возвращать даты.
+    :return: Лист дат.
+    """
     dates = []
     if this_moths:
         end = datetime.datetime.now()
