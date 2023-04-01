@@ -17,7 +17,7 @@ currency = {'rubles': 'RUB', 'euro': 'EUR', 'yen': 'JPY', 'yuan': 'CNY'}
 
 def initialize_user(user_id: str) -> bool:
     """
-    Инициализирует пользователя с определеным id. Создаёт db если ее нет для пользователя.
+    Инициализирует пользователя с определенным id. Создаёт db если ее нет для пользователя.
     :param user_id: ID пользователя в Telegram.
     :return: Boolean значение удалось ли произвести действие.
     """
@@ -239,7 +239,7 @@ def add_spend(user_id: str, value: float, name=None, type_of_spend=None, categor
     :param subcategory: Подкатегория траты.
     :param category: Категория траты.
     :param user_id: ID пользователя в Telegram.
-    :param value: Значение потраченых средств в текущей валюте.
+    :param value: Значение потраченных средств в текущей валюте.
     :param name: Имя траты.
     :param type_of_spend: Тип траты.
     :param date: Время траты.
@@ -272,7 +272,7 @@ def add_event_spend(user_id: str, value: float, name: str, day_of_spending: int,
     :param subcategory: Подкатегория траты.
     :param category: Категория траты.
     :param user_id: ID пользователя в Telegram.
-    :param value: Значение потраченых средств в текущей валюте.
+    :param value: Значение потраченных средств в текущей валюте.
     :param name: Имя траты.
     :param day_of_spending: Число месяца траты.
     :return: Удалось ли добавить событие траты.
@@ -730,7 +730,7 @@ def delete_spend_by_id(user_id: str, spend_id: int) -> bool:
     :param spend_id: ID траты в db пользователя.
     :return: Удалось ли удалить трату без ошибок.
     """
-    logging.debug(f"Удаляем тарату у пользователя с id: {user_id}.")
+    logging.debug(f"Удаляем трату у пользователя с id: {user_id}.")
     # Подключаем базу данных определённого пользователя.
     db: Connection = sqlite3.connect(f'data/{user_id}.db')
     try:
@@ -946,6 +946,33 @@ def _recount_all_values_of_user(user_id: str, exchange_rate: float) -> bool:
     :param exchange_rate: Обменный курс. Соотношение старой валюты к новой.
     :return: Удалось ли пересчитать значения.
     """
+    # Подключаем базу данных определённого пользователя.
+    db: Connection = sqlite3.connect(f'data/{user_id}.db')
+    logging.debug(f"Меняем валюту для пользователя с id: {user_id}.")
+    try:
+        sql: Cursor = db.cursor()
+        # Обновляем значения в таблице event_income
+        sql.execute("UPDATE event_income SET value_of_income = value_of_income * ?", (exchange_rate,))
+        # Обновляем значения в таблице event_spend
+        sql.execute("UPDATE event_spend SET value_of_spending = value_of_spending * ?", (exchange_rate,))
+        # Обновляем значения в таблице income
+        sql.execute("UPDATE income SET value_of_income = value_of_income * ?", (exchange_rate,))
+        # Обновляем значения в таблице spend
+        sql.execute("UPDATE spend SET value_of_spend = value_of_spend * ?", (exchange_rate,))
+        # Обновляем значения в таблице user_data
+        sql.execute("UPDATE user_data SET goal = goal * ?", (exchange_rate,))
+        lim = get_limit(user_id) * exchange_rate
+        sql.execute("UPDATE user_data SET 'limit' = ?", (lim,))
+        sql.execute("UPDATE user_data SET remainer = remainer * ?", (exchange_rate,))
+        db.commit()
+    except sqlite3.Error as error:
+        logging.error(
+            f"{_recount_all_values_of_user.__name__}: Ошибка при работе с базой данных: '{error}'. Пользователь с id: '{user_id}'")
+        return False
+    finally:
+        if db:
+            db.close()
+    return True
     pass
 
 
@@ -958,6 +985,10 @@ def recount_values_in_new_currency(user_id: str, to_currency: str) -> bool:
     """
     logging.debug(f"Пересчитываем валюту для пользователя с id: {user_id}.")
     now_currency = get_user_currency(user_id)
+    if now_currency == to_currency:
+        logging.debug(f"{recount_values_in_new_currency.__name__}: Предупреждение! Смена на ту же валюту для "
+                      f"пользователя с id: {user_id}.")
+        return False
     exchange_rate = helpers.curency_parser.get_exchange_rate(now_currency, to_currency)
     status = _recount_all_values_of_user(user_id, exchange_rate)
     status = status and _set_user_currency(user_id, to_currency)
@@ -970,7 +1001,29 @@ def transfer_remained_from_past_months(user_id: str) -> bool:
     :param user_id: ID пользователя в Telegram.
     :return: Удалось ли перенести остаток с прошлого месяца.
     """
-    pass
+    logging.debug(f"Переносим остаток с прошлого месяца для пользователя с id: {user_id}.")
+    past_months = helpers.helpers.get_past_months()
+    sum_of_spends = return_sum_spend(user_id, past_months[0], past_months[1])
+    sum_of_incomes = return_sum_income(user_id, past_months[0], past_months[1])
+    remained = sum_of_incomes - sum_of_spends
+    flag_is_used_this_months = False
+    incomes = return_incomes_of_period(user_id, None, None, True)
+    for row in incomes:
+        if incomes[row]['type_of_income'] == 'remained':
+            flag_is_used_this_months = True
+            break
+    if flag_is_used_this_months:
+        logging.debug(f"{transfer_remained_from_past_months.__name__}: Предупреждение! Перенос уже использован для "
+                      f"пользователя с id: {user_id} в этом месяце.")
+        return True
+    status = False
+    if remained > 0:
+        status = add_income(user_id, remained, f"Остаток с прошлого месяца", type_of_income="remained")
+    else:
+        logging.debug(f"{transfer_remained_from_past_months.__name__}: Предупреждение! Неположительный остаток для "
+                      f"пользователя с id: {user_id}.")
+        status = True
+    return status
 
 
 initialize_user("test")
@@ -989,12 +1042,7 @@ add_event_spend('test', 10.4, "GAMES", 10)
 add_event_income('test', 10.12, "Зарплата", 10)
 add_event_income('test', 10.2, "Музыка", 9)
 add_event_income('test', 10.4, "GAMES", 9)
-
 execute_events('test')
-
-print(return_incomes_of_period('test', datetime.datetime(2012, 2, 10), datetime.datetime(2023, 3, 22)))
-print(return_incomes_of_period('test', datetime.datetime(2023, 1, 10), datetime.datetime(2023, 3, 22)))
-
 count_remained('test')
 delete_spend_by_id('test', 26)
 add_spend('test', 11, "EW")
@@ -1006,5 +1054,6 @@ add_income('test', 100)
 add_income('test', 100)
 delete_income_by_id('test', 6)
 delete_spend_by_id('test', 12)
-print(check_limit('test'))
+transfer_remained_from_past_months('test')
+recount_values_in_new_currency('test', "JPY")
 # delete_income_by_id("test", 1)

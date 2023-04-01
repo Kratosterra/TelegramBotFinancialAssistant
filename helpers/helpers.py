@@ -26,6 +26,18 @@ def get_dates_with_date(date_of_months: int, start: datetime, end: datetime, nee
     return dates_of_one_date
 
 
+def get_past_months() -> list:
+    """
+    Возвращает лист размера 2, с первой датой прошлого месяца и последней датой прошлого месяца
+    :return: Лист из двух datetime.
+    """
+    today = datetime.date.today()
+    first_day_prev_month = datetime.date(today.year, today.month - 1, 1)
+    last_day_prev_month = first_day_prev_month.replace(day=28) + datetime.timedelta(days=4)
+    last_day_prev_month = last_day_prev_month - datetime.timedelta(days=last_day_prev_month.day)
+    return [first_day_prev_month, last_day_prev_month]
+
+
 def get_dates_of_period(start: datetime, end: datetime, this_moths=False) -> list:
     """
     Возвращает все даты в определенном промежутке либо за текущий месяц.

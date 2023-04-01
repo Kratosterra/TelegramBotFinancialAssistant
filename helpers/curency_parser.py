@@ -1,3 +1,4 @@
+# TODO(Kratosterra): Сделать функцию get_exchange_rate.
 def get_exchange_rate(now_currency: str, new_currency: str) -> float:
     """
     Получает обменный курс для двух валют в виде соотношения текущей валюты к новой.
