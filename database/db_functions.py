@@ -11,8 +11,9 @@ import helpers.helpers
 
 # Задаём тип логирования
 logging.basicConfig(format='%(asctime)s: %(levelname)s: %(message)s', level=logging.DEBUG)
+
+
 # Задаём словарь валют
-currency = {'rubles': 'RUB', 'euro': 'EUR', 'yen': 'JPY', 'yuan': 'CNY'}
 
 
 def initialize_user(user_id: str) -> bool:
@@ -40,7 +41,7 @@ def initialize_user(user_id: str) -> bool:
         if sql.fetchone() is None:
             utctime = time.strftime("%Y-%m-%d", time.gmtime())
             sql.execute("INSERT INTO user_data VALUES (?, ?, ?, ?, ?, ?)",
-                        (1, None, None, None, currency['rubles'], utctime))
+                        (1, None, None, None, 'RUB', utctime))
             db.commit()
         # Создаём таблицу доходов.
         sql.execute("""CREATE TABLE IF NOT EXISTS income (
@@ -952,18 +953,18 @@ def _recount_all_values_of_user(user_id: str, exchange_rate: float) -> bool:
     try:
         sql: Cursor = db.cursor()
         # Обновляем значения в таблице event_income
-        sql.execute("UPDATE event_income SET value_of_income = value_of_income * ?", (exchange_rate,))
+        sql.execute("UPDATE event_income SET value_of_income = round(value_of_income * ?, 2)", (exchange_rate,))
         # Обновляем значения в таблице event_spend
-        sql.execute("UPDATE event_spend SET value_of_spending = value_of_spending * ?", (exchange_rate,))
+        sql.execute("UPDATE event_spend SET value_of_spending = round(value_of_spending * ?, 2)", (exchange_rate,))
         # Обновляем значения в таблице income
-        sql.execute("UPDATE income SET value_of_income = value_of_income * ?", (exchange_rate,))
+        sql.execute("UPDATE income SET value_of_income = round(value_of_income * ?, 2)", (exchange_rate,))
         # Обновляем значения в таблице spend
-        sql.execute("UPDATE spend SET value_of_spend = value_of_spend * ?", (exchange_rate,))
+        sql.execute("UPDATE spend SET value_of_spend = round(value_of_spend * ?, 2)", (exchange_rate,))
         # Обновляем значения в таблице user_data
-        sql.execute("UPDATE user_data SET goal = goal * ?", (exchange_rate,))
+        sql.execute("UPDATE user_data SET goal = round(goal * ?, 2)", (exchange_rate,))
         lim = get_limit(user_id) * exchange_rate
-        sql.execute("UPDATE user_data SET 'limit' = ?", (lim,))
-        sql.execute("UPDATE user_data SET remainer = remainer * ?", (exchange_rate,))
+        sql.execute("UPDATE user_data SET 'limit' = round(?, 2)", (lim,))
+        sql.execute("UPDATE user_data SET remainer = round(remainer * ?, 2)", (exchange_rate,))
         db.commit()
     except sqlite3.Error as error:
         logging.error(
@@ -989,7 +990,12 @@ def recount_values_in_new_currency(user_id: str, to_currency: str) -> bool:
         logging.debug(f"{recount_values_in_new_currency.__name__}: Предупреждение! Смена на ту же валюту для "
                       f"пользователя с id: {user_id}.")
         return False
-    exchange_rate = helpers.curency_parser.get_exchange_rate(now_currency, to_currency)
+    try:
+        exchange_rate = helpers.curency_parser.get_exchange_rate(now_currency, to_currency)
+    except Exception as e:
+        logging.error(f"{recount_values_in_new_currency.__name__}: {e} для "
+                      f"пользователя с id: {user_id}.")
+        return False
     status = _recount_all_values_of_user(user_id, exchange_rate)
     status = status and _set_user_currency(user_id, to_currency)
     return status
@@ -1027,33 +1033,30 @@ def transfer_remained_from_past_months(user_id: str) -> bool:
 
 
 initialize_user("test")
-add_new_category('test', "Еда")
-add_new_category('test', "да")
-add_new_category('test', "Умммм")
-add_new_category('test', "У")
-add_new_subcategory('test', "Еда", "d")
-add_new_subcategory('test', "Еда", "s")
-add_new_subcategory('test', "Еда", "k")
-add_new_subcategory('test', "Еда", "f")
-add_new_subcategory('test', "да", "f")
-add_new_subcategory('test', "У", "фыф")
-add_event_spend('test', 10.1, "Музыка", 10)
-add_event_spend('test', 10.4, "GAMES", 10)
-add_event_income('test', 10.12, "Зарплата", 10)
-add_event_income('test', 10.2, "Музыка", 9)
-add_event_income('test', 10.4, "GAMES", 9)
-execute_events('test')
-count_remained('test')
-delete_spend_by_id('test', 26)
-add_spend('test', 11, "EW")
-delete_income_by_id('test', 1)
-set_limit('test', 600)
-set_remained('test', 99)
-set_goal('test', 100)
-add_income('test', 100)
-add_income('test', 100)
-delete_income_by_id('test', 6)
-delete_spend_by_id('test', 12)
-transfer_remained_from_past_months('test')
-recount_values_in_new_currency('test', "JPY")
+# add_new_category('test', "Еда")
+# add_new_category('test', "да")
+# add_new_category('test', "Умммм")
+# add_new_subcategory('test', "Еда", "d")
+# add_new_subcategory('test', "Еда", "s")
+# add_new_subcategory('test', "Еда", "k")
+# add_new_subcategory('test', "Еда", "f")
+# add_new_subcategory('test', "да", "f")
+# add_new_subcategory('test', "У", "фыф")
+# add_event_spend('test', 10.1, "Музыка", 10)
+# add_event_spend('test', 10.4, "GAMES", 10)
+# add_event_income('test', 10.12, "Зарплата", 10)
+# add_event_income('test', 10.2, "Музыка", 9)
+# add_event_income('test', 10.4, "GAMES", 9)
+# execute_events('test')
+# count_remained('test')
+# delete_spend_by_id('test', 26)
+# add_spend('test', 11, "EW")
+# delete_income_by_id('test', 1)
+# set_limit('test', 600)
+# set_remained('test', 99)
+# set_goal('test', 100)
+# add_income('test', 100)
+# add_income('test', 100)
+# transfer_remained_from_past_months('test')
+recount_values_in_new_currency('test', "RUB")
 # delete_income_by_id("test", 1)

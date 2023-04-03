@@ -1,4 +1,9 @@
-# TODO(Kratosterra): Сделать функцию get_exchange_rate.
+import requests
+from bs4 import BeautifulSoup
+
+from config import currency
+
+
 def get_exchange_rate(now_currency: str, new_currency: str) -> float:
     """
     Получает обменный курс для двух валют в виде соотношения текущей валюты к новой.
@@ -6,4 +11,26 @@ def get_exchange_rate(now_currency: str, new_currency: str) -> float:
     :param new_currency: Новая валюта.
     :return: Обменный курс в виде соотношения текущей валюты к новой.
     """
-    return 0.25
+    if now_currency not in currency.keys() or new_currency not in currency.keys():
+        raise Exception(f"{get_exchange_rate.__name__}: Одна из представленных валют не существует в представлении.")
+    return get_exchange_rate_dict(now_currency)[currency[new_currency]]
+
+
+def get_exchange_rate_dict(currency_str: str) -> dict:
+    """
+    Возвращает словарь с обменными курсами для валют.
+    :param currency_str: Валюта в трехбуквенном строковом представлении
+    :return: Словарь с обменным курсом для валют
+    """
+    full_content = requests.get(f"https://www.x-rates.com/table/?from={currency_str}&amount=1").content
+    html_data = BeautifulSoup(full_content, "html.parser")
+    exchange_tables = html_data.find_all("table")
+    exchange_rates = {}
+    for exchange_table in exchange_tables:
+        for tr in exchange_table.find_all("tr"):
+            tds = tr.find_all("td")
+            if tds:
+                currency_data = tds[0].text
+                exchange_rate = float(tds[1].text)
+                exchange_rates[currency_data] = exchange_rate
+    return exchange_rates
