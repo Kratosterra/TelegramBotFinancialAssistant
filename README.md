@@ -8,6 +8,8 @@
 
 - **Python 3.11**
 - **PyTelegramBotApi**
+- **requests**
+- **bs4**
 
 ### Структура
 
