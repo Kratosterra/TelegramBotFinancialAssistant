@@ -16,7 +16,7 @@ logging.basicConfig(format='%(asctime)s: %(levelname)s: %(message)s', level=logg
 # Задаём словарь валют
 
 
-def initialize_user(user_id: str) -> bool:
+async def initialize_user(user_id: str) -> bool:
     """
     Инициализирует пользователя с определенным id. Создаёт db если ее нет для пользователя.
     :param user_id: ID пользователя в Telegram.
@@ -24,7 +24,7 @@ def initialize_user(user_id: str) -> bool:
     """
     logging.debug(f"Инициализация пользователя с id: {user_id}.")
     # Подключаем базу данных определённого пользователя.
-    db: Connection = sqlite3.connect(f'data/{user_id}.db')
+    db: Connection = sqlite3.connect(f'database/data/{user_id}.db')
     try:
         sql: Cursor = db.cursor()
         # Создаём таблицу с информацией о пользователе.
@@ -100,7 +100,7 @@ def initialize_user(user_id: str) -> bool:
     return True
 
 
-def set_limit(user_id: str, limit: float) -> bool:
+async def set_limit(user_id: str, limit: float) -> bool:
     """
     Устанавливает лимит по средствам для определённого пользователя.
     :param user_id: ID пользователя в Telegram.
@@ -108,7 +108,7 @@ def set_limit(user_id: str, limit: float) -> bool:
     :return: Boolean значение удалось ли произвести действие.
     """
     # Подключаем базу данных определённого пользователя.
-    db: Connection = sqlite3.connect(f'data/{user_id}.db')
+    db: Connection = sqlite3.connect(f'database/data/{user_id}.db')
     logging.debug(f"Устанавливаем лимит средств для пользователя с id: {user_id}.")
     try:
         sql: Cursor = db.cursor()
@@ -124,7 +124,7 @@ def set_limit(user_id: str, limit: float) -> bool:
     return True
 
 
-def set_remained(user_id: str, remained: float) -> bool:
+async def set_remained(user_id: str, remained: float) -> bool:
     """
     Устанавливает остаток по средствам для определённого пользователя.
     :param user_id: ID пользователя в Telegram.
@@ -132,7 +132,7 @@ def set_remained(user_id: str, remained: float) -> bool:
     :return: Boolean значение удалось ли произвести действие.
     """
     # Подключаем базу данных определённого пользователя.
-    db: Connection = sqlite3.connect(f'data/{user_id}.db')
+    db: Connection = sqlite3.connect(f'database/data/{user_id}.db')
     logging.debug(f"Устанавливаем остаток средств для пользователя с id: {user_id}.")
     try:
         sql: Cursor = db.cursor()
@@ -148,7 +148,7 @@ def set_remained(user_id: str, remained: float) -> bool:
     return True
 
 
-def set_goal(user_id: str, goal: float) -> bool:
+async def set_goal(user_id: str, goal: float) -> bool:
     """
     Устанавливает цель по средствам для определённого пользователя.
     :param user_id: ID пользователя в Telegram.
@@ -156,7 +156,7 @@ def set_goal(user_id: str, goal: float) -> bool:
     :return: Boolean значение удалось ли произвести действие.
     """
     # Подключаем базу данных определённого пользователя.
-    db: Connection = sqlite3.connect(f'data/{user_id}.db')
+    db: Connection = sqlite3.connect(f'database/data/{user_id}.db')
     logging.debug(f"Устанавливаем цель для пользователя с id: {user_id}.")
     try:
         sql: Cursor = db.cursor()
@@ -172,8 +172,8 @@ def set_goal(user_id: str, goal: float) -> bool:
     return True
 
 
-def add_income(user_id: str, value: float, name=None, type_of_income=None,
-               date=time.strftime("%Y-%m-%d", time.gmtime())) -> bool:
+async def add_income(user_id: str, value: float, name=None, type_of_income=None,
+                     date=time.strftime("%Y-%m-%d", time.gmtime())) -> bool:
     """
     Добавляет доход пользователю.
     :param user_id: ID пользователя в Telegram.
@@ -185,7 +185,7 @@ def add_income(user_id: str, value: float, name=None, type_of_income=None,
     """
     logging.debug(f"Добавляем запись о доходе пользователя с id: {user_id}.")
     # Подключаем базу данных определённого пользователя.
-    db: Connection = sqlite3.connect(f'data/{user_id}.db')
+    db: Connection = sqlite3.connect(f'database/data/{user_id}.db')
     try:
         sql: Cursor = db.cursor()
         sql.execute(
@@ -202,7 +202,7 @@ def add_income(user_id: str, value: float, name=None, type_of_income=None,
     return True
 
 
-def add_event_income(user_id: str, value: float, name: str, day_of_income: int) -> bool:
+async def add_event_income(user_id: str, value: float, name: str, day_of_income: int) -> bool:
     """
     Добавляет событие дохода пользователю.
     :param user_id: ID пользователя в Telegram.
@@ -217,7 +217,7 @@ def add_event_income(user_id: str, value: float, name: str, day_of_income: int) 
             f"{add_event_income.__name__}: Дата не лежит в переделе от 1 до 28. Пользователь с id: '{user_id}'")
         return False
     # Подключаем базу данных определённого пользователя.
-    db: Connection = sqlite3.connect(f'data/{user_id}.db')
+    db: Connection = sqlite3.connect(f'database/data/{user_id}.db')
     try:
         sql: Cursor = db.cursor()
         utctime = time.strftime("%Y-%m-%d", time.gmtime())
@@ -233,8 +233,8 @@ def add_event_income(user_id: str, value: float, name: str, day_of_income: int) 
     return True
 
 
-def add_spend(user_id: str, value: float, name=None, type_of_spend=None, category=None, subcategory=None,
-              date=time.strftime("%Y-%m-%d", time.gmtime())) -> bool:
+async def add_spend(user_id: str, value: float, name=None, type_of_spend=None, category=None, subcategory=None,
+                    date=time.strftime("%Y-%m-%d", time.gmtime())) -> bool:
     """
     Добавляет трату пользователю.
     :param subcategory: Подкатегория траты.
@@ -248,7 +248,7 @@ def add_spend(user_id: str, value: float, name=None, type_of_spend=None, categor
     """
     logging.debug(f"Добавляем запись о тратах пользователя с id: {user_id}.")
     # Подключаем базу данных определённого пользователя.
-    db: Connection = sqlite3.connect(f'data/{user_id}.db')
+    db: Connection = sqlite3.connect(f'database/data/{user_id}.db')
     try:
         sql: Cursor = db.cursor()
         sql.execute(
@@ -266,8 +266,8 @@ def add_spend(user_id: str, value: float, name=None, type_of_spend=None, categor
     return True
 
 
-def add_event_spend(user_id: str, value: float, name: str, day_of_spending: int, category=None,
-                    subcategory=None) -> bool:
+async def add_event_spend(user_id: str, value: float, name: str, day_of_spending: int, category=None,
+                          subcategory=None) -> bool:
     """
     Добавляет событие траты пользователю.
     :param subcategory: Подкатегория траты.
@@ -284,7 +284,7 @@ def add_event_spend(user_id: str, value: float, name: str, day_of_spending: int,
             f"{add_event_spend.__name__}: Дата не лежит в переделе от 1 до 28. Пользователь с id: '{user_id}'")
         return False
     # Подключаем базу данных определённого пользователя.
-    db: Connection = sqlite3.connect(f'data/{user_id}.db')
+    db: Connection = sqlite3.connect(f'database/data/{user_id}.db')
     try:
         sql: Cursor = db.cursor()
         utctime = time.strftime("%Y-%m-%d", time.gmtime())
@@ -301,7 +301,7 @@ def add_event_spend(user_id: str, value: float, name: str, day_of_spending: int,
     return True
 
 
-def add_new_category(user_id: str, category: str) -> bool:
+async def add_new_category(user_id: str, category: str) -> bool:
     """
     Добавляет пользователю новую категорию.
     :param user_id: ID пользователя в Telegram.
@@ -310,7 +310,7 @@ def add_new_category(user_id: str, category: str) -> bool:
     """
     logging.debug(f"Добавляем новую категорию пользователю с id: {user_id}.")
     # Подключаем базу данных определённого пользователя.
-    db: Connection = sqlite3.connect(f'data/{user_id}.db')
+    db: Connection = sqlite3.connect(f'database/data/{user_id}.db')
     try:
         sql: Cursor = db.cursor()
         sql.execute("INSERT INTO categories VALUES (?, ?)", (category, "{}"))
@@ -325,7 +325,7 @@ def add_new_category(user_id: str, category: str) -> bool:
     return True
 
 
-def add_new_subcategory(user_id: str, category: str, subcategory: str) -> bool:
+async def add_new_subcategory(user_id: str, category: str, subcategory: str) -> bool:
     """
     Добавляет пользователю в категорию подкатегорию.
     :param user_id: ID пользователя в Telegram.
@@ -335,7 +335,7 @@ def add_new_subcategory(user_id: str, category: str, subcategory: str) -> bool:
     """
     logging.debug(f"Добавляем новую подкатегорию в категорию пользователю с id: {user_id}.")
     # Подключаем базу данных определённого пользователя.
-    db: Connection = sqlite3.connect(f'data/{user_id}.db')
+    db: Connection = sqlite3.connect(f'database/data/{user_id}.db')
     try:
         sql: Cursor = db.cursor()
         sql.execute(f"SELECT sub_categories FROM categories WHERE name_of_category = ?", (category,))
@@ -370,7 +370,7 @@ def add_new_subcategory(user_id: str, category: str, subcategory: str) -> bool:
     return True
 
 
-def delete_event_spend(user_id: str, name_of_spending: str) -> bool:
+async def delete_event_spend(user_id: str, name_of_spending: str) -> bool:
     """
     Удаляет событие трат у пользователя по имени события.
     :param user_id: ID пользователя в Telegram.
@@ -379,7 +379,7 @@ def delete_event_spend(user_id: str, name_of_spending: str) -> bool:
     """
     logging.debug(f"Удаляем СОБЫТИЕ трат у пользователя с id: {user_id}.")
     # Подключаем базу данных определённого пользователя.
-    db: Connection = sqlite3.connect(f'data/{user_id}.db')
+    db: Connection = sqlite3.connect(f'database/data/{user_id}.db')
     try:
         sql: Cursor = db.cursor()
         sql.execute(f"DELETE from event_spend where name_of_spending = ?", (name_of_spending,))
@@ -394,7 +394,7 @@ def delete_event_spend(user_id: str, name_of_spending: str) -> bool:
     return True
 
 
-def delete_event_income(user_id: str, name_of_income: str) -> bool:
+async def delete_event_income(user_id: str, name_of_income: str) -> bool:
     """
     Удаляет событие дохода у пользователя по имени события.
     :param user_id: ID пользователя в Telegram.
@@ -403,7 +403,7 @@ def delete_event_income(user_id: str, name_of_income: str) -> bool:
     """
     logging.debug(f"Удаляем СОБЫТИЕ получения средств у пользователя с id: {user_id}.")
     # Подключаем базу данных определённого пользователя.
-    db: Connection = sqlite3.connect(f'data/{user_id}.db')
+    db: Connection = sqlite3.connect(f'database/data/{user_id}.db')
     try:
         sql: Cursor = db.cursor()
         sql.execute(f"DELETE from event_income where name_of_income = ?", (name_of_income,))
@@ -418,7 +418,7 @@ def delete_event_income(user_id: str, name_of_income: str) -> bool:
     return True
 
 
-def delete_category(user_id: str, name_of_category: str) -> bool:
+async def delete_category(user_id: str, name_of_category: str) -> bool:
     """
     Удаляет категорию по ее имени.
     :param user_id: ID пользователя в Telegram.
@@ -427,7 +427,7 @@ def delete_category(user_id: str, name_of_category: str) -> bool:
     """
     logging.debug(f"Удаляем категорию у пользователя с id: {user_id}.")
     # Подключаем базу данных определённого пользователя.
-    db: Connection = sqlite3.connect(f'data/{user_id}.db')
+    db: Connection = sqlite3.connect(f'database/data/{user_id}.db')
     try:
         sql: Cursor = db.cursor()
         sql.execute(f"DELETE from categories where name_of_category = ?", (name_of_category,))
@@ -442,7 +442,7 @@ def delete_category(user_id: str, name_of_category: str) -> bool:
     return True
 
 
-def delete_subcategory(user_id: str, category: str, subcategory: str) -> bool:
+async def delete_subcategory(user_id: str, category: str, subcategory: str) -> bool:
     """
     Удаляет подкатегорию по имени в категории пользователя.
     :param user_id: ID пользователя в Telegram.
@@ -452,7 +452,7 @@ def delete_subcategory(user_id: str, category: str, subcategory: str) -> bool:
     """
     logging.debug(f"Удаляем подкатегорию в категории пользователя с id: {user_id}.")
     # Подключаем базу данных определённого пользователя.
-    db: Connection = sqlite3.connect(f'data/{user_id}.db')
+    db: Connection = sqlite3.connect(f'database/data/{user_id}.db')
     try:
         sql: Cursor = db.cursor()
         sql.execute(f"SELECT sub_categories FROM categories WHERE name_of_category = ?", (category,))
@@ -483,7 +483,7 @@ def delete_subcategory(user_id: str, category: str, subcategory: str) -> bool:
     return True
 
 
-def execute_events(user_id: str) -> bool:
+async def execute_events(user_id: str) -> bool:
     """
     Исполняет события трат и доходов пользователя с учетом прошедшего с последнего исполнения времени.
     :param user_id: ID пользователя в Telegram.
@@ -493,7 +493,7 @@ def execute_events(user_id: str) -> bool:
     utctime = datetime.datetime.now()
     logging.debug(f"Исполняем события пользователя с id: {user_id}.")
     # Подключаем базу данных определённого пользователя.
-    db: Connection = sqlite3.connect(f'data/{user_id}.db')
+    db: Connection = sqlite3.connect(f'database/data/{user_id}.db')
     try:
         sql: Cursor = db.cursor()
         all_events_spend = {}
@@ -560,7 +560,7 @@ def execute_events(user_id: str) -> bool:
     return True
 
 
-def return_all_spends(user_id: str) -> dict:
+async def return_all_spends(user_id: str) -> dict:
     """
     Возвращает все траты пользователя из db в виде словаря.
     :param user_id: ID пользователя в Telegram.
@@ -568,7 +568,7 @@ def return_all_spends(user_id: str) -> dict:
     """
     logging.debug(f"Возвращаем все траты пользователя с id: {user_id}.")
     # Подключаем базу данных определённого пользователя.
-    db: Connection = sqlite3.connect(f'data/{user_id}.db')
+    db: Connection = sqlite3.connect(f'database/data/{user_id}.db')
     all_spend = {}
     try:
         sql: Cursor = db.cursor()
@@ -591,7 +591,7 @@ def return_all_spends(user_id: str) -> dict:
     return all_spend
 
 
-def return_all_incomes(user_id: str) -> dict:
+async def return_all_incomes(user_id: str) -> dict:
     """
     Возвращает все доходы пользователя из db в виде словаря.
     :param user_id: ID пользователя в Telegram.
@@ -599,7 +599,7 @@ def return_all_incomes(user_id: str) -> dict:
     """
     logging.debug(f"Возвращаем все доходы пользователя с id: {user_id}.")
     # Подключаем базу данных определённого пользователя.
-    db: Connection = sqlite3.connect(f'data/{user_id}.db')
+    db: Connection = sqlite3.connect(f'database/data/{user_id}.db')
     all_incomes = {}
     try:
         sql: Cursor = db.cursor()
@@ -620,7 +620,7 @@ def return_all_incomes(user_id: str) -> dict:
     return all_incomes
 
 
-def return_spend_of_period(user_id: str, start: datetime, end: datetime, this_moths=False) -> dict:
+async def return_spend_of_period(user_id: str, start: datetime, end: datetime, this_moths=False) -> dict:
     """
     Возвращает словарь с тратами за определенный период или за текущий месяц.
     :param user_id: ID пользователя в Telegram.
@@ -641,7 +641,7 @@ def return_spend_of_period(user_id: str, start: datetime, end: datetime, this_mo
     return spends_of_period
 
 
-def return_incomes_of_period(user_id: str, start: datetime, end: datetime, this_moths=False) -> dict:
+async def return_incomes_of_period(user_id: str, start: datetime, end: datetime, this_moths=False) -> dict:
     """
     Возвращает словарь с доходами за определенный период или за текущий месяц.
     :param user_id: ID пользователя в Telegram.
@@ -662,7 +662,7 @@ def return_incomes_of_period(user_id: str, start: datetime, end: datetime, this_
     return incomes_of_period
 
 
-def return_sum_income(user_id: str, start: datetime, end: datetime, this_moths=False) -> float:
+async def return_sum_income(user_id: str, start: datetime, end: datetime, this_moths=False) -> float:
     """
     Возвращает сумму доходов за определенный период или текущий месяц.
     :param user_id: ID пользователя в Telegram.
@@ -679,7 +679,7 @@ def return_sum_income(user_id: str, start: datetime, end: datetime, this_moths=F
     return sum_income
 
 
-def return_sum_spend(user_id: str, start: datetime, end: datetime, this_moths=False) -> float:
+async def return_sum_spend(user_id: str, start: datetime, end: datetime, this_moths=False) -> float:
     """
     Возвращает сумму трат за определенный период или текущий месяц.
     :param user_id: ID пользователя в Telegram.
@@ -696,7 +696,7 @@ def return_sum_spend(user_id: str, start: datetime, end: datetime, this_moths=Fa
     return sum_spend
 
 
-def return_all_categories(user_id: str) -> dict:
+async def return_all_categories(user_id: str) -> dict:
     """
     Возвращает все категории пользователя в виде словаря.
     :param user_id: ID пользователя в Telegram.
@@ -704,7 +704,7 @@ def return_all_categories(user_id: str) -> dict:
     """
     logging.debug(f"Возвращаем все категории пользователя с id: {user_id}.")
     # Подключаем базу данных определённого пользователя.
-    db: Connection = sqlite3.connect(f'data/{user_id}.db')
+    db: Connection = sqlite3.connect(f'database/data/{user_id}.db')
     all_categories = {}
     try:
         sql: Cursor = db.cursor()
@@ -724,7 +724,7 @@ def return_all_categories(user_id: str) -> dict:
     return all_categories
 
 
-def delete_spend_by_id(user_id: str, spend_id: int) -> bool:
+async def delete_spend_by_id(user_id: str, spend_id: int) -> bool:
     """
     Удаляет трату по id у пользователя.
     :param user_id: ID пользователя в Telegram.
@@ -733,7 +733,7 @@ def delete_spend_by_id(user_id: str, spend_id: int) -> bool:
     """
     logging.debug(f"Удаляем трату у пользователя с id: {user_id}.")
     # Подключаем базу данных определённого пользователя.
-    db: Connection = sqlite3.connect(f'data/{user_id}.db')
+    db: Connection = sqlite3.connect(f'database/data/{user_id}.db')
     try:
         sql: Cursor = db.cursor()
         sql.execute(f"DELETE from spend where id = ?", (spend_id,))
@@ -748,7 +748,7 @@ def delete_spend_by_id(user_id: str, spend_id: int) -> bool:
     return True
 
 
-def delete_income_by_id(user_id: str, income_id: int) -> bool:
+async def delete_income_by_id(user_id: str, income_id: int) -> bool:
     """
     Удаляет доход по id у пользователя.
     :param user_id: ID пользователя в Telegram.
@@ -757,7 +757,7 @@ def delete_income_by_id(user_id: str, income_id: int) -> bool:
     """
     logging.debug(f"Удаляем доход у пользователя с id: {user_id}.")
     # Подключаем базу данных определённого пользователя.
-    db: Connection = sqlite3.connect(f'data/{user_id}.db')
+    db: Connection = sqlite3.connect(f'database/data/{user_id}.db')
     try:
         sql: Cursor = db.cursor()
         sql.execute(f"DELETE from income where id = ?", (income_id,))
@@ -772,7 +772,7 @@ def delete_income_by_id(user_id: str, income_id: int) -> bool:
     return True
 
 
-def count_remained(user_id: str) -> bool:
+async def count_remained(user_id: str) -> bool:
     """
     Считает и устанавливает остаток на текущий месяц.
     :param user_id: ID пользователя Telegram.
@@ -784,14 +784,14 @@ def count_remained(user_id: str) -> bool:
     return set_remained(user_id, remained)
 
 
-def get_goal(user_id: str) -> float or None:
+async def get_goal(user_id: str) -> float or None:
     """
     Возвращает цель по средствам.
     :param user_id: ID пользователя Telegram.
     :return: Сумму цели по средствам.
     """
     # Подключаем базу данных определённого пользователя.
-    db: Connection = sqlite3.connect(f'data/{user_id}.db')
+    db: Connection = sqlite3.connect(f'database/data/{user_id}.db')
     logging.debug(f"Получаем цель средств для пользователя с id: {user_id}.")
     goal = 0.00
     try:
@@ -808,14 +808,14 @@ def get_goal(user_id: str) -> float or None:
     return goal
 
 
-def get_limit(user_id: str) -> float or None:
+async def get_limit(user_id: str) -> float or None:
     """
     Возвращает лимит по средствам.
     :param user_id: ID пользователя Telegram.
     :return: Сумму лимита по средствам.
     """
     # Подключаем базу данных определённого пользователя.
-    db: Connection = sqlite3.connect(f'data/{user_id}.db')
+    db: Connection = sqlite3.connect(f'database/data/{user_id}.db')
     logging.debug(f"Получаем лимит средств для пользователя с id: {user_id}.")
     limit = 0.00
     try:
@@ -832,14 +832,14 @@ def get_limit(user_id: str) -> float or None:
     return limit
 
 
-def get_remained(user_id: str) -> float or None:
+async def get_remained(user_id: str) -> float or None:
     """
     Получает остаток по средствам и возвращает его.
     :param user_id: ID пользователя в Telegram.
     :return: Сумму остатка по средствам.
     """
     # Подключаем базу данных определённого пользователя.
-    db: Connection = sqlite3.connect(f'data/{user_id}.db')
+    db: Connection = sqlite3.connect(f'database/data/{user_id}.db')
     logging.debug(f"Получаем остаток средств для пользователя с id: {user_id}.")
     remained = 0.00
     try:
@@ -856,7 +856,7 @@ def get_remained(user_id: str) -> float or None:
     return remained
 
 
-def check_goal(user_id: str) -> bool or None:
+async def check_goal(user_id: str) -> bool or None:
     """
     Выполнена ли цель по средствам.
     :param user_id: ID пользователя Telegram.
@@ -876,7 +876,7 @@ def check_goal(user_id: str) -> bool or None:
         return True
 
 
-def check_limit(user_id: str) -> bool or None:
+async def check_limit(user_id: str) -> bool or None:
     """
     Выполнена ли цель по средствам.
     :param user_id: ID пользователя Telegram.
@@ -892,14 +892,14 @@ def check_limit(user_id: str) -> bool or None:
         return False
 
 
-def get_user_currency(user_id: str) -> str:
+async def get_user_currency(user_id: str) -> str:
     """
     Возвращает текущую валюту пользователя.
     :param user_id: ID пользователя Telegram.
     :return: Валюта в трехбуквенном представлении.
     """
     # Подключаем базу данных определённого пользователя.
-    db: Connection = sqlite3.connect(f'data/{user_id}.db')
+    db: Connection = sqlite3.connect(f'database/data/{user_id}.db')
     logging.debug(f"Получаем валюту для пользователя с id: {user_id}.")
     currency = ""
     try:
@@ -916,7 +916,7 @@ def get_user_currency(user_id: str) -> str:
     return currency
 
 
-def _set_user_currency(user_id: str, new_currency: str) -> bool:
+async def _set_user_currency(user_id: str, new_currency: str) -> bool:
     """
     Устанавливает текущую валюту пользователя в информационное поле.
     :param user_id: ID пользователя Telegram.
@@ -924,7 +924,7 @@ def _set_user_currency(user_id: str, new_currency: str) -> bool:
     :return: Удалось ли установить новую валюту без ошибок.
     """
     # Подключаем базу данных определённого пользователя.
-    db: Connection = sqlite3.connect(f'data/{user_id}.db')
+    db: Connection = sqlite3.connect(f'database/data/{user_id}.db')
     logging.debug(f"Меняем валюту для пользователя с id: {user_id}.")
     try:
         sql: Cursor = db.cursor()
@@ -940,7 +940,7 @@ def _set_user_currency(user_id: str, new_currency: str) -> bool:
     return True
 
 
-def _recount_all_values_of_user(user_id: str, exchange_rate: float) -> bool:
+async def _recount_all_values_of_user(user_id: str, exchange_rate: float) -> bool:
     """
     Пересчитывает все значения в db в новую валюту, получая соотношения текущей валюты к новой.
     :param user_id: ID пользователя Telegram.
@@ -948,7 +948,7 @@ def _recount_all_values_of_user(user_id: str, exchange_rate: float) -> bool:
     :return: Удалось ли пересчитать значения.
     """
     # Подключаем базу данных определённого пользователя.
-    db: Connection = sqlite3.connect(f'data/{user_id}.db')
+    db: Connection = sqlite3.connect(f'database/data/{user_id}.db')
     logging.debug(f"Меняем валюту для пользователя с id: {user_id}.")
     try:
         sql: Cursor = db.cursor()
@@ -977,7 +977,7 @@ def _recount_all_values_of_user(user_id: str, exchange_rate: float) -> bool:
     pass
 
 
-def recount_values_in_new_currency(user_id: str, to_currency: str) -> bool:
+async def recount_values_in_new_currency(user_id: str, to_currency: str) -> bool:
     """
     Пересчитывает все значения в db согласно текущему курсу валют.
     :param user_id: ID пользователя в Telegram
@@ -1001,7 +1001,7 @@ def recount_values_in_new_currency(user_id: str, to_currency: str) -> bool:
     return status
 
 
-def transfer_remained_from_past_months(user_id: str) -> bool:
+async def transfer_remained_from_past_months(user_id: str) -> bool:
     """
     Переносит остаток у пользователя с предыдущего месяца как доход.
     :param user_id: ID пользователя в Telegram.
@@ -1030,33 +1030,3 @@ def transfer_remained_from_past_months(user_id: str) -> bool:
                       f"пользователя с id: {user_id}.")
         status = True
     return status
-
-
-initialize_user("test")
-# add_new_category('test', "Еда")
-# add_new_category('test', "да")
-# add_new_category('test', "Умммм")
-# add_new_subcategory('test', "Еда", "d")
-# add_new_subcategory('test', "Еда", "s")
-# add_new_subcategory('test', "Еда", "k")
-# add_new_subcategory('test', "Еда", "f")
-# add_new_subcategory('test', "да", "f")
-# add_new_subcategory('test', "У", "фыф")
-# add_event_spend('test', 10.1, "Музыка", 10)
-# add_event_spend('test', 10.4, "GAMES", 10)
-# add_event_income('test', 10.12, "Зарплата", 10)
-# add_event_income('test', 10.2, "Музыка", 9)
-# add_event_income('test', 10.4, "GAMES", 9)
-# execute_events('test')
-# count_remained('test')
-# delete_spend_by_id('test', 26)
-# add_spend('test', 11, "EW")
-# delete_income_by_id('test', 1)
-# set_limit('test', 600)
-# set_remained('test', 99)
-# set_goal('test', 100)
-# add_income('test', 100)
-# add_income('test', 100)
-# transfer_remained_from_past_months('test')
-recount_values_in_new_currency('test', "RUB")
-# delete_income_by_id("test", 1)
