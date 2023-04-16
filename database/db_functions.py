@@ -542,10 +542,10 @@ async def execute_events(user_id: str) -> bool:
         db.close()
         for i in all_events_spend.keys():
             spend = all_events_spend[i]
-            add_spend(spend[0], spend[1], spend[2], spend[3], spend[4], spend[5], spend[6])
+            await add_spend(spend[0], spend[1], spend[2], spend[3], spend[4], spend[5], spend[6])
         for i in all_events_income.keys():
             income = all_events_income[i]
-            add_income(income[0], income[1], income[2], income[3], income[4])
+            await add_income(income[0], income[1], income[2], income[3], income[4])
     except sqlite3.Error as error:
         logging.error(
             f"{execute_events.__name__}: Ошибка при работе с базой данных: '{error}'. Пользователь с id: '{user_id}'")
@@ -630,7 +630,7 @@ async def return_spend_of_period(user_id: str, start: datetime, end: datetime, t
     :return: Словарь с тратами.
     """
     logging.debug(f"Возвращаем траты в заданном периоде пользователя с id: {user_id}.")
-    all_spends = return_all_spends(user_id)
+    all_spends = await return_all_spends(user_id)
     time_points = helpers.helpers.get_dates_of_period(start, end, this_moths)
     spends_of_period = {}
     for time_point in time_points:
@@ -651,7 +651,7 @@ async def return_incomes_of_period(user_id: str, start: datetime, end: datetime,
     :return: Словарь с доходами.
     """
     logging.debug(f"Возвращаем доходы в заданном периоде пользователя с id: {user_id}.")
-    all_incomes = return_all_incomes(user_id)
+    all_incomes = await return_all_incomes(user_id)
     time_points = helpers.helpers.get_dates_of_period(start, end, this_moths)
     incomes_of_period = {}
     for time_point in time_points:
@@ -673,7 +673,7 @@ async def return_sum_income(user_id: str, start: datetime, end: datetime, this_m
     """
     logging.debug(f"Возвращаем сумму доходов пользователя с id: {user_id}.")
     sum_income = 0.00
-    incomes = return_incomes_of_period(user_id, start, end, this_moths)
+    incomes = await return_incomes_of_period(user_id, start, end, this_moths)
     for i in incomes.keys():
         sum_income += incomes[i]['value_of_income']
     return sum_income
@@ -690,7 +690,7 @@ async def return_sum_spend(user_id: str, start: datetime, end: datetime, this_mo
     """
     logging.debug(f"Возвращаем сумму трат пользователя с id: {user_id}.")
     sum_spend = 0.00
-    spends = return_spend_of_period(user_id, start, end, this_moths)
+    spends = await return_spend_of_period(user_id, start, end, this_moths)
     for i in spends.keys():
         sum_spend += spends[i]['value_of_spend']
     return sum_spend
@@ -778,10 +778,10 @@ async def count_remained(user_id: str) -> bool:
     :param user_id: ID пользователя Telegram.
     :return: Удалось ли установить остаток.
     """
-    sum_of_spends = return_sum_spend(user_id, None, None, True)
-    sum_of_incomes = return_sum_income(user_id, None, None, True)
+    sum_of_spends = await return_sum_spend(user_id, None, None, True)
+    sum_of_incomes = await return_sum_income(user_id, None, None, True)
     remained = sum_of_incomes - sum_of_spends
-    return set_remained(user_id, remained)
+    return await set_remained(user_id, remained)
 
 
 async def get_goal(user_id: str) -> float or None:
@@ -793,7 +793,6 @@ async def get_goal(user_id: str) -> float or None:
     # Подключаем базу данных определённого пользователя.
     db: Connection = sqlite3.connect(f'database/data/{user_id}.db')
     logging.debug(f"Получаем цель средств для пользователя с id: {user_id}.")
-    goal = 0.00
     try:
         sql: Cursor = db.cursor()
         sql.execute(f"SELECT * FROM user_data WHERE id = 1")
@@ -817,7 +816,6 @@ async def get_limit(user_id: str) -> float or None:
     # Подключаем базу данных определённого пользователя.
     db: Connection = sqlite3.connect(f'database/data/{user_id}.db')
     logging.debug(f"Получаем лимит средств для пользователя с id: {user_id}.")
-    limit = 0.00
     try:
         sql: Cursor = db.cursor()
         sql.execute(f"SELECT * FROM user_data WHERE id = 1")
@@ -841,7 +839,6 @@ async def get_remained(user_id: str) -> float or None:
     # Подключаем базу данных определённого пользователя.
     db: Connection = sqlite3.connect(f'database/data/{user_id}.db')
     logging.debug(f"Получаем остаток средств для пользователя с id: {user_id}.")
-    remained = 0.00
     try:
         sql: Cursor = db.cursor()
         sql.execute(f"SELECT * FROM user_data WHERE id = 1")
@@ -985,7 +982,7 @@ async def recount_values_in_new_currency(user_id: str, to_currency: str) -> bool
     :return: Удалось ли пересчитать значения и установить информацию.
     """
     logging.debug(f"Пересчитываем валюту для пользователя с id: {user_id}.")
-    now_currency = get_user_currency(user_id)
+    now_currency = await get_user_currency(user_id)
     if now_currency == to_currency:
         logging.debug(f"{recount_values_in_new_currency.__name__}: Предупреждение! Смена на ту же валюту для "
                       f"пользователя с id: {user_id}.")
@@ -996,8 +993,8 @@ async def recount_values_in_new_currency(user_id: str, to_currency: str) -> bool
         logging.error(f"{recount_values_in_new_currency.__name__}: {e} для "
                       f"пользователя с id: {user_id}.")
         return False
-    status = _recount_all_values_of_user(user_id, exchange_rate)
-    status = status and _set_user_currency(user_id, to_currency)
+    status = await _recount_all_values_of_user(user_id, exchange_rate)
+    status = status and await _set_user_currency(user_id, to_currency)
     return status
 
 
@@ -1009,11 +1006,11 @@ async def transfer_remained_from_past_months(user_id: str) -> bool:
     """
     logging.debug(f"Переносим остаток с прошлого месяца для пользователя с id: {user_id}.")
     past_months = helpers.helpers.get_past_months()
-    sum_of_spends = return_sum_spend(user_id, past_months[0], past_months[1])
-    sum_of_incomes = return_sum_income(user_id, past_months[0], past_months[1])
+    sum_of_spends = await return_sum_spend(user_id, past_months[0], past_months[1])
+    sum_of_incomes = await return_sum_income(user_id, past_months[0], past_months[1])
     remained = sum_of_incomes - sum_of_spends
     flag_is_used_this_months = False
-    incomes = return_incomes_of_period(user_id, None, None, True)
+    incomes = await return_incomes_of_period(user_id, None, None, True)
     for row in incomes:
         if incomes[row]['type_of_income'] == 'remained':
             flag_is_used_this_months = True
@@ -1022,7 +1019,6 @@ async def transfer_remained_from_past_months(user_id: str) -> bool:
         logging.debug(f"{transfer_remained_from_past_months.__name__}: Предупреждение! Перенос уже использован для "
                       f"пользователя с id: {user_id} в этом месяце.")
         return True
-    status = False
     if remained > 0:
         status = add_income(user_id, remained, f"Остаток с прошлого месяца", type_of_income="remained")
     else:

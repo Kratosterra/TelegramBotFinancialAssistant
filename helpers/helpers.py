@@ -7,7 +7,7 @@ def get_dates_with_date(date_of_months: int, start: datetime, end: datetime, nee
     Возвращает все даты во временном отрезке, которые совпадают с датой переданной в функцию.
     :param date_of_months: Дата.
     :param start: Начало временного периода.
-    :param end: Конецу временного периода.
+    :param end: Конец временного периода.
     :param need_first_date: Нужна ли первая дата.
     :return: Лист дат.
     """
