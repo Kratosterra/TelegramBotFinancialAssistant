@@ -9,12 +9,6 @@ from sqlite3 import Connection, Cursor
 import helpers.curency_parser
 import helpers.helpers
 
-# Задаём тип логирования
-logging.basicConfig(format='%(asctime)s: %(levelname)s: %(message)s', level=logging.DEBUG)
-
-
-# Задаём словарь валют
-
 
 async def initialize_user(user_id: str) -> bool:
     """
