@@ -14,3 +14,16 @@ main_menu = ReplyKeyboardMarkup(
     ],
     resize_keyboard=True
 )
+
+report_menu = ReplyKeyboardMarkup(
+    keyboard=[
+        [
+            KeyboardButton(text='📄 Краткий отчет'),
+            KeyboardButton(text='📊 Подробный отчет'),
+        ],
+        [
+            KeyboardButton(text='📤 Экспорт'),
+        ]
+    ],
+    resize_keyboard=True
+)
