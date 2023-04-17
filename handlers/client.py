@@ -4,9 +4,11 @@ from aiogram import types
 
 from bot import dp
 from database import db_functions
+from handlers.keyboards import keyboard
 from texts.ru_RU import messages
 
 
+@dp.message_handler(commands=['start'])
 async def start(message: types.Message) -> None:
     """
     Функция, исполняющаяся при и пользовании команды /start
@@ -15,7 +17,7 @@ async def start(message: types.Message) -> None:
     try:
         logging.debug(f"/start. Пользователь с id {message.from_user.id}.")
         await db_functions.initialize_user(str(message.from_user.id))
-        await message.answer(messages.start_message, parse_mode="MarkdownV2")
+        await message.answer(messages.start_message, parse_mode="MarkdownV2", reply_markup=keyboard.main_menu)
     except Exception as e:
         logging.error(f"{start.__name__}: {e}. Пользователь с id {message.from_user.id}.")
 
@@ -28,10 +30,10 @@ async def on_files(message: types.Message):
     """
     if message.document:
         logging.debug(f"Получил документ {message.document.file_name}. Пользователь с id {message.from_user.id}.")
-        await message.answer_document(message.document.file_id)
+        await message.answer("Импорт")
     if message.photo:
         logging.debug(f"Получил фото. Пользователь с id {message.from_user.id}.")
-        await message.answer_photo(message.photo[-1].file_id)
+        await message.answer_photo("Сканирование QR")
 
 
 @dp.message_handler(content_types=['text'])
