@@ -24,12 +24,13 @@ async def start(message: types.Message) -> None:
 
 
 @dp.message_handler(Text(equals='📝 Отчёты и экспорт'))
-async def on_report(message: types.Message):
+async def on_report(message: types.Message) -> None:
     """
     Функция, ответственная за обработку запроса на предоставление отчета или экспорта
     :param message: экземпляр сообщения
     """
     try:
+        await db_functions.execute_events(str(message.from_user.id))
         await message.answer("Активируем Отчёты и экспорт")
         await message.delete()
     except Exception as e:
@@ -37,12 +38,13 @@ async def on_report(message: types.Message):
 
 
 @dp.message_handler(Text(equals='ℹ️ Информация'))
-async def on_info(message: types.Message):
+async def on_info(message: types.Message) -> None:
     """
     Функция, ответственная за обработку запроса на предоставление информации по текущему состоянию бюджета
     :param message: экземпляр сообщения
     """
     try:
+        await db_functions.execute_events(str(message.from_user.id))
         await message.delete()
         await message.answer("Активируем Информация")
     except Exception as e:
@@ -50,12 +52,13 @@ async def on_info(message: types.Message):
 
 
 @dp.message_handler(Text(equals='📈 Траты и Доходы'))
-async def on_incomes_spends(message: types.Message):
+async def on_incomes_spends(message: types.Message) -> None:
     """
     Функция, ответственная за обработку запроса на работу с тратами и доходами
     :param message: экземпляр сообщения
     """
     try:
+        await db_functions.execute_events(str(message.from_user.id))
         await message.delete()
         await message.answer("Активируем Траты и Доходы")
     except Exception as e:
@@ -63,12 +66,13 @@ async def on_incomes_spends(message: types.Message):
 
 
 @dp.message_handler(Text(equals='⚙️ Настройки'))
-async def on_settings(message: types.Message):
+async def on_settings(message: types.Message) -> None:
     """
     Функция, ответственная за обработку запроса на открытие настроек
     :param message: экземпляр сообщения
     """
     try:
+        await db_functions.execute_events(str(message.from_user.id))
         await message.delete()
         await message.answer("Активируем Настройки")
     except Exception as e:
@@ -76,12 +80,13 @@ async def on_settings(message: types.Message):
 
 
 @dp.message_handler(Text(equals='🆘 Помощь'))
-async def on_help(message: types.Message):
+async def on_help(message: types.Message) -> None:
     """
     Функция, ответственная за обработку запроса на предоставление инструкции по работе
     :param message: экземпляр сообщения
     """
     try:
+        await db_functions.execute_events(str(message.from_user.id))
         await message.delete()
         await message.answer(messages.help_message, parse_mode="MarkdownV2")
     except Exception as e:
@@ -89,12 +94,13 @@ async def on_help(message: types.Message):
 
 
 @dp.message_handler(content_types=['document', 'photo'])
-async def on_files(message: types.Message):
+async def on_files(message: types.Message) -> None:
     """
     Функция, отвечающая за запуск действий с фото для сканирования и обработкой документов
     :param message: экземпляр сообщения
     """
     try:
+        await db_functions.execute_events(str(message.from_user.id))
         if message.document:
             logging.debug(f"Получил документ {message.document.file_name}. Пользователь с id {message.from_user.id}.")
             await message.answer("Импорт")
@@ -115,7 +121,7 @@ async def on_all_not_command_message(message: types.Message) -> None:
     await message.answer(text=messages.not_in_bot_message, parse_mode="MarkdownV2")
 
 
-def register_client():
+def register_client() -> None:
     """
     Регистрирует команды бота.
     """
