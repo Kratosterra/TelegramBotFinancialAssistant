@@ -1,4 +1,5 @@
 import logging
+import time
 
 from aiogram import types
 from aiogram.dispatcher import FSMContext
@@ -36,8 +37,10 @@ async def on_all_not_command_message(message: types.Message, state: FSMContext) 
         check = message.text
         if check.replace('.', '', 1).isdigit():
             if float(message.text) > 0:
-                await message.delete()
-                await message.answer(messages.error, parse_mode="MarkdownV2")
+                current_state = await state.get_state()
+                if current_state is not None:
+                    await message.delete()
+                    await message.answer(messages.error, parse_mode="MarkdownV2")
             else:
                 await message.delete()
                 await message.answer(messages.hint_message, parse_mode="MarkdownV2")
@@ -86,13 +89,38 @@ async def proceed_handler(call: CallbackQuery, state: FSMContext):
     Позволяет пользователю завершить любое действие.
     """
     try:
-        logging.debug(f"Добавляем информацию. Пользователь с id {call.message.from_user.id}.")
+        logging.debug(f"Добавляем информацию. Пользователь с id {call.from_user.id}.")
         await call.answer()
         logging.debug(await state.get_data())
-        # if (await state.get_data())['isSpend']:
-        # db_functions.add_spend()
-        # else:
-        # db_functions.add_income()
+        value = (await state.get_data())['value']
+        name = None
+        date = None
+        if 'date' in (await state.get_data()).keys():
+            date = (await state.get_data())['date']
+        if 'name' in (await state.get_data()).keys():
+            name = (await state.get_data())['name']
+        if not (await state.get_data())['isSpend']:
+            if date is None:
+                await db_functions.add_income(user_id=str(call.from_user.id), value=value, name=name,
+                                              date=time.strftime("%Y-%m-%d", time.gmtime()))
+            else:
+                await db_functions.add_income(user_id=str(call.from_user.id), value=value, name=name, date=date)
+        else:
+            category = None
+            subcategory = None
+            if 'category' in (await state.get_data()).keys():
+                category = (await state.get_data())['category']
+            if 'subcategory' in (await state.get_data()).keys():
+                subcategory = (await state.get_data())['subcategory']
+            if date is None:
+                await db_functions.add_spend(user_id=str(call.from_user.id), value=value, name=name, category=category,
+                                             subcategory=subcategory,
+                                             date=time.strftime("%Y-%m-%d", time.gmtime()))
+            else:
+                await db_functions.add_spend(user_id=str(call.from_user.id), category=category,
+                                             subcategory=subcategory, value=value, name=name, date=date)
+        await call.message.delete()
+        await call.message.answer("Добавление завершено!")
         await state.finish()
         await IncomeSpendForm.value.set()
     except Exception as e:
@@ -112,7 +140,8 @@ async def cancel_handler(call: CallbackQuery, state: FSMContext):
             return
         logging.debug(f'Отменяем состояние {current_state}. Пользователь с id {call.message.from_user.id}.')
         await state.finish()
-        await call.message.reply('Отмена!')
+        await call.message.delete()
+        await call.message.answer('Отмена!')
         await IncomeSpendForm.value.set()
     except Exception as e:
         logging.error(f"{cancel_handler.__name__}: {e}. Пользователь с id {call.message.from_user.id}.")
