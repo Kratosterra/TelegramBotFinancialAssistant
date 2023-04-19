@@ -32,8 +32,8 @@ spend_sum_inline = InlineKeyboardMarkup(
             InlineKeyboardButton(text="📆 Изменить дату", callback_data="change_date:sum"),
         ],
         [
-            InlineKeyboardButton(text="📎 Добавить категорию", callback_data="name:spend_sum"),
-            InlineKeyboardButton(text="🖇 Добавить подкатегорию", callback_data="change_date:spend_sum"),
+            InlineKeyboardButton(text="📎 Категория", callback_data="category:spend_sum"),
+            InlineKeyboardButton(text="🖇 Подкатегория", callback_data="sub:spend_sum"),
         ],
         [
             InlineKeyboardButton(text="✅ Добавить трату", callback_data="proceed:sum"),
@@ -43,14 +43,37 @@ spend_sum_inline = InlineKeyboardMarkup(
 )
 
 
-def generate_keyboard(buttons: list):
-    keyboard = InlineKeyboardMarkup(row_width=2)
+async def generate_category_keyboard(buttons: list):
+    keyboard = InlineKeyboardMarkup(row_width=3)
+    check = 0
     for button_text in buttons:
-        keyboard.add(InlineKeyboardButton(button_text, callback_data=button_text))
+        keyboard.insert(InlineKeyboardButton(button_text, callback_data=f"choice:category:{button_text}"))
+        check += 1
+        if check == 2:
+            keyboard.row()
+            check = 0
+    keyboard.row(
+        InlineKeyboardButton("Отмена", callback_data="category:delete")
+    )
     return keyboard
 
 
-def generate_calendar(year, month):
+async def generate_subcategory_keyboard(buttons: list):
+    keyboard = InlineKeyboardMarkup(row_width=3)
+    check = 0
+    for button_text in buttons:
+        keyboard.insert(InlineKeyboardButton(button_text, callback_data=f"choice:subcategory:{button_text}"))
+        check += 1
+        if check == 2:
+            keyboard.row()
+            check = 0
+    keyboard.row(
+        InlineKeyboardButton("Отмена", callback_data="subcategory:delete")
+    )
+    return keyboard
+
+
+async def generate_calendar(year, month):
     # создаем пустую inline клавиатуру
     keyboard = InlineKeyboardMarkup(row_width=7)
     # создаем список дней недели, который будет использоваться для заполнения первого ряда клавиатуры
