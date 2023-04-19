@@ -13,8 +13,8 @@ from texts.ru_RU import messages
 @dp.message_handler(commands=['start'], state='*')
 async def start(message: types.Message) -> None:
     """
-    Функция, исполняющаяся при и пользовании команды /start
-    :param message: экземпляр сообщения
+    Функция, исполняющаяся при и пользовании команды /start.
+    :param message: Экземпляр сообщения
     """
     try:
         logging.debug(f"/start. Пользователь с id {message.from_user.id}.")
@@ -28,8 +28,8 @@ async def start(message: types.Message) -> None:
 @dp.message_handler(Text(equals='📝 Отчёты и экспорт'), state=IncomeSpendForm.value)
 async def on_report(message: types.Message) -> None:
     """
-    Функция, ответственная за обработку запроса на предоставление отчета или экспорта
-    :param message: экземпляр сообщения
+    Функция, ответственная за обработку запроса на предоставление отчета или экспорта.
+    :param message: Экземпляр сообщения
     """
     try:
         await db_functions.execute_events(str(message.from_user.id))
@@ -42,8 +42,8 @@ async def on_report(message: types.Message) -> None:
 @dp.message_handler(Text(equals='ℹ️ Информация'), state=IncomeSpendForm.value)
 async def on_info(message: types.Message) -> None:
     """
-    Функция, ответственная за обработку запроса на предоставление информации по текущему состоянию бюджета
-    :param message: экземпляр сообщения
+    Функция, ответственная за обработку запроса на предоставление информации по текущему состоянию бюджета.
+    :param message: Экземпляр сообщения.
     """
     try:
         await db_functions.execute_events(str(message.from_user.id))
@@ -56,8 +56,8 @@ async def on_info(message: types.Message) -> None:
 @dp.message_handler(Text(equals='📈 Траты и Доходы'), state=IncomeSpendForm.value)
 async def on_incomes_spends(message: types.Message) -> None:
     """
-    Функция, ответственная за обработку запроса на работу с тратами и доходами
-    :param message: экземпляр сообщения
+    Функция, ответственная за обработку запроса на работу с тратами и доходами.
+    :param message: Экземпляр сообщения.
     """
     try:
         await db_functions.execute_events(str(message.from_user.id))
@@ -70,8 +70,8 @@ async def on_incomes_spends(message: types.Message) -> None:
 @dp.message_handler(Text(equals='⚙️ Настройки'), state=IncomeSpendForm.value)
 async def on_settings(message: types.Message) -> None:
     """
-    Функция, ответственная за обработку запроса на открытие настроек
-    :param message: экземпляр сообщения
+    Функция, ответственная за обработку запроса на открытие настроек.
+    :param message: Экземпляр сообщения.
     """
     try:
         await db_functions.execute_events(str(message.from_user.id))
@@ -84,8 +84,8 @@ async def on_settings(message: types.Message) -> None:
 @dp.message_handler(Text(equals='🆘 Помощь'), state=IncomeSpendForm.value)
 async def on_help(message: types.Message) -> None:
     """
-    Функция, ответственная за обработку запроса на предоставление инструкции по работе
-    :param message: экземпляр сообщения
+    Функция, ответственная за обработку запроса на предоставление инструкции по работе.
+    :param message: Экземпляр сообщения.
     """
     try:
         await db_functions.execute_events(str(message.from_user.id))
@@ -98,8 +98,8 @@ async def on_help(message: types.Message) -> None:
 @dp.message_handler(content_types=['document', 'photo'], state=IncomeSpendForm.value)
 async def on_files(message: types.Message) -> None:
     """
-    Функция, отвечающая за запуск действий с фото для сканирования и обработкой документов
-    :param message: экземпляр сообщения
+    Функция, отвечающая за запуск действий с фото для сканирования и обработкой документов.
+    :param message: Экземпляр сообщения.
     """
     try:
         await db_functions.execute_events(str(message.from_user.id))
@@ -117,8 +117,8 @@ async def on_files(message: types.Message) -> None:
                     state=IncomeSpendForm.value)
 async def on_all_not_command_message(message: types.Message) -> None:
     """
-    Функция, отвечающая пользователю на непредусмотренный тип входных данных
-    :param message: экземпляр сообщения
+    Функция, отвечающая пользователю на непредусмотренный тип входных данных.
+    :param message: Экземпляр сообщения.
     """
     logging.debug(f"Получил неизвестный тип сообщения. Пользователь с id {message.from_user.id}.")
     await message.answer(text=messages.not_in_bot_message, parse_mode="MarkdownV2")
