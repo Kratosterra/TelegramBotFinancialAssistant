@@ -35,8 +35,8 @@ spend_sum_inline = InlineKeyboardMarkup(
             InlineKeyboardButton(text="📆 Изменить дату", callback_data="change_date:sum"),
         ],
         [
-            InlineKeyboardButton(text="📎 Категория", callback_data="category:spend_sum"),
-            InlineKeyboardButton(text="🖇 Подкатегория", callback_data="sub:spend_sum"),
+            InlineKeyboardButton(text="📂 Категория", callback_data="category:spend_sum"),
+            InlineKeyboardButton(text="🗂️ Подкатегория", callback_data="sub:spend_sum"),
         ],
         [
             InlineKeyboardButton(text="✅ Добавить трату", callback_data="proceed:sum"),
@@ -110,8 +110,8 @@ async def generate_calendar(year: int, month: int) -> InlineKeyboardMarkup:
                 keyboard.insert(InlineKeyboardButton(str(day), callback_data=f'date:{year}:{month}:{day}'))
         keyboard.row()
     keyboard.row(
-        InlineKeyboardButton("⬅️ Прошлый месяц", callback_data=f"previous_month:{year}:{month}"),
-        InlineKeyboardButton("Следующий месяц ➡️", callback_data=f"next_month:{year}:{month}")
+        InlineKeyboardButton("⬅️ Прошл. месяц", callback_data=f"previous_month:{year}:{month}"),
+        InlineKeyboardButton("След. месяц ➡️", callback_data=f"next_month:{year}:{month}")
     )
     keyboard.row(
         InlineKeyboardButton("❌ Назад", callback_data="calendar:delete")
@@ -123,16 +123,16 @@ async def generate_calendar(year: int, month: int) -> InlineKeyboardMarkup:
 income_spend_category_inline = InlineKeyboardMarkup(
     inline_keyboard=[
         [
-            InlineKeyboardButton(text="[-] Доход 📈", callback_data="delete:income:button"),
-            InlineKeyboardButton(text="[-] Трату 📉", callback_data="delete:spend:button"),
+            InlineKeyboardButton(text="Удалить Доход 📈", callback_data="delete:income:button"),
+            InlineKeyboardButton(text="Удалить Трату 📉", callback_data="delete:spend:button"),
         ],
         [
-            InlineKeyboardButton(text="[+] Категория", callback_data="add:category:button"),
-            InlineKeyboardButton(text="[+] Подкатегория", callback_data="add:subcategory:button"),
+            InlineKeyboardButton(text="🆕 Категория", callback_data="add:category:button"),
+            InlineKeyboardButton(text="🆕 Подкатегория", callback_data="add:subcategory:button"),
         ],
         [
-            InlineKeyboardButton(text="[-] Категория", callback_data="delete:category:button"),
-            InlineKeyboardButton(text="[-] Подкатегория", callback_data="delete:subcategory:button"),
+            InlineKeyboardButton(text="🗑 Категория", callback_data="delete:category:button"),
+            InlineKeyboardButton(text="🗑 Подкатегория", callback_data="delete:subcategory:button"),
         ],
         [
             InlineKeyboardButton(text="❌ Назад", callback_data="cancel"),

@@ -10,6 +10,7 @@ from aiogram.types import CallbackQuery
 from bot import dp
 from database import db_functions
 from handlers.keyboards import inline_keybords
+from handlers.models.categories_deletion_model import CategoriesAddingForm
 from handlers.models.income_spend_model import IncomeSpendForm
 from texts.ru_RU import messages
 
@@ -292,6 +293,11 @@ async def add_name_message_handler(message: types.Message, state: FSMContext) ->
             await message.delete()
             name = str(message.text)
             name = re.sub(r'[^\w\s]', '', name)
+            if len(name) < 3:
+                await message.answer(
+                    "Имя суммы не должно быть меньше 3 символов, повторите ввод, снова отправьте имя)")
+                await IncomeSpendForm.name.set()
+                return
             await state.update_data(name=name)
             await message.answer(f"Имя: {name} установлено!", disable_notification=True)
             await IncomeSpendForm.isSpend.set()
@@ -324,7 +330,9 @@ async def add_date_message_handler(call: CallbackQuery, state: FSMContext) -> No
         await IncomeSpendForm.isSpend.set()
 
 
-@dp.callback_query_handler(text_contains='cancel', state='*')
+@dp.callback_query_handler(text_contains='cancel',
+                           state=[IncomeSpendForm.isSpend, IncomeSpendForm.value,
+                                  CategoriesAddingForm.start])
 async def cancel_handler(call: CallbackQuery, state: FSMContext) -> None:
     """
     Позволяет пользователю завершить любое действие. Сбрасывает набор состояний.

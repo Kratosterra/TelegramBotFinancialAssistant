@@ -316,8 +316,13 @@ async def add_category_message_handler(message: types.Message) -> None:
             await message.delete()
             category = str(message.text)
             category = re.sub(r'[^\w\s]', '', category)
+            if len(category) < 3:
+                await message.answer(
+                    "Имя категории не должно быть меньше 3 символов, повторите ввод, снова отправьте имя)")
+                await CategoriesAddingForm.add_category.set()
+                return
             await db_functions.add_new_category(str(message.from_user.id), category)
-            await message.answer(f"Категория: {str(message.text)} добавлена!", disable_notification=True)
+            await message.answer(f"Категория: {category} добавлена!", disable_notification=True)
             await CategoriesAddingForm.start.set()
     except Exception as e:
         logging.error(f"{add_category_message_handler.__name__}: {e}. Пользователь с id {message.from_user.id}.")
@@ -408,8 +413,13 @@ async def add_category_callback_handler(message: types.Message, state: FSMContex
             await message.delete()
             category = str(message.text)
             category = re.sub(r'[^\w\s]', '', category)
+            if len(category) < 3:
+                await message.answer(
+                    "Имя подкатегории не должно быть меньше 3 символов, повторите ввод, снова отправьте имя)")
+                await CategoriesAddingForm.add_subcategory_by_category.set()
+                return
             await db_functions.add_new_subcategory(str(message.from_user.id), str(now_category), category)
-            await message.answer(f"Подкатегория: {str(message.text)} в категорию {now_category} добавлена!",
+            await message.answer(f"Подкатегория: {category} в категорию {now_category} добавлена!",
                                  disable_notification=True)
             await CategoriesAddingForm.start.set()
     except Exception as e:

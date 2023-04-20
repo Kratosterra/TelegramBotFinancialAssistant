@@ -26,7 +26,7 @@ async def start(message: types.Message) -> None:
         logging.error(f"{start.__name__}: {e}. Пользователь с id {message.from_user.id}.")
 
 
-@dp.message_handler(Text(equals='📝 Отчёты и экспорт'), state=IncomeSpendForm.value)
+@dp.message_handler(Text(equals='📊 Отчёты и экспорт'), state=IncomeSpendForm.value)
 async def on_report(message: types.Message) -> None:
     """
     Функция, ответственная за обработку запроса на предоставление отчета или экспорта.
@@ -40,7 +40,7 @@ async def on_report(message: types.Message) -> None:
         logging.error(f"{on_report.__name__}: {e}. Пользователь с id {message.from_user.id}.")
 
 
-@dp.message_handler(Text(equals='ℹ️ Информация'), state=IncomeSpendForm.value)
+@dp.message_handler(Text(equals='ℹ️ Бюджет'), state=IncomeSpendForm.value)
 async def on_info(message: types.Message) -> None:
     """
     Функция, ответственная за обработку запроса на предоставление информации по текущему состоянию бюджета.
@@ -54,7 +54,7 @@ async def on_info(message: types.Message) -> None:
         logging.error(f"{on_info.__name__}: {e}. Пользователь с id {message.from_user.id}.")
 
 
-@dp.message_handler(Text(equals='📈 Траты и Доходы'), state=IncomeSpendForm.value)
+@dp.message_handler(Text(equals='🛠 Категории'), state=IncomeSpendForm.value)
 async def on_incomes_spends(message: types.Message) -> None:
     """
     Функция, ответственная за обработку запроса на работу с тратами и доходами.
@@ -64,12 +64,28 @@ async def on_incomes_spends(message: types.Message) -> None:
         await db_functions.execute_events(str(message.from_user.id))
         await message.delete()
         await CategoriesAddingForm.start.set()
-        await message.answer("*Траты и Доходы\!*\nТут вы можете добавить и удалить категории/подкатегории\.\n"
-                             "А также *удалить* доходы/траты\!", parse_mode="MarkdownV2",
-                             reply_markup=inline_keybords.income_spend_category_inline)
+        await message.answer(
+            "*Категории и удаление\!* 📈\n\nТут вы можете *добавить и удалить* категории/подкатегории\.\n"
+            "А также *удалить* доходы/траты\!", parse_mode="MarkdownV2",
+            reply_markup=inline_keybords.income_spend_category_inline)
     except Exception as e:
         logging.error(f"{on_incomes_spends.__name__}: {e}. Пользователь с id {message.from_user.id}.")
 
+
+@dp.message_handler(Text(equals='📝 Траты и доходы'), state=IncomeSpendForm.value)
+async def on_incomes_spends(message: types.Message) -> None:
+    """
+    Функция, ответственная за обработку запроса на работу с тратами и доходами.
+    :param message: Экземпляр сообщения.
+    """
+    try:
+        await db_functions.execute_events(str(message.from_user.id))
+        await message.delete()
+        await message.answer(
+            "*Траты и доходы\!* 📝\n\nЧтобы добавить сумму, просто оправьте *число* или *фото чека* в чат\!\n"
+            "Пример: *123* или *123\.32*\n\nЭта кнопка \- просто подсказка\.", parse_mode="MarkdownV2")
+    except Exception as e:
+        logging.error(f"{on_incomes_spends.__name__}: {e}. Пользователь с id {message.from_user.id}.")
 
 @dp.message_handler(Text(equals='⚙️ Настройки'), state=IncomeSpendForm.value)
 async def on_settings(message: types.Message) -> None:
