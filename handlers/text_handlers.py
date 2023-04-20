@@ -1,4 +1,5 @@
 import logging
+import re
 import time
 from datetime import datetime
 
@@ -31,7 +32,7 @@ async def process_sum_from_user(message: types.Message, state: FSMContext) -> No
         await state.update_data(value=round(float(message.text), 2))
         await message.answer(
             f"Сумма: {round(float(message.text), 2)} {await db_functions.get_user_currency(str(message.from_user.id))}",
-            reply_markup=inline_keybords.income_spend_inline)
+            reply_markup=inline_keybords.income_spend_inline, disable_notification=True)
     except Exception as e:
         if e == "Message is too long":
             await message.answer("Это слишком большое сообщение для меня!")
@@ -55,7 +56,7 @@ async def activate_adding_income(call: CallbackQuery, state: FSMContext) -> None
         await state.update_data(isSpend=False)
         await call.message.answer(
             f"Доход {(await state.get_data())['value']} {await db_functions.get_user_currency(str(call.from_user.id))}",
-            reply_markup=inline_keybords.income_sum_inline)
+            reply_markup=inline_keybords.income_sum_inline, disable_notification=True)
     except Exception as e:
         logging.error(f"{activate_adding_income.__name__}: {e}. Пользователь с id {call.from_user.id}.")
         await IncomeSpendForm.value.set()
@@ -76,7 +77,7 @@ async def activate_adding_spend(call: CallbackQuery, state: FSMContext) -> None:
         await state.update_data(isSpend=True)
         await call.message.answer(
             f"Добавляем трату {(await state.get_data())['value']} {await db_functions.get_user_currency(str(call.from_user.id))}",
-            reply_markup=inline_keybords.spend_sum_inline)
+            reply_markup=inline_keybords.spend_sum_inline, disable_notification=True)
     except Exception as e:
         logging.error(f"{activate_adding_spend.__name__}: {e}. Пользователь с id {call.from_user.id}.")
         await IncomeSpendForm.value.set()
@@ -94,7 +95,7 @@ async def send_date_picker(call: CallbackQuery) -> None:
         month = datetime.now().month
         calendar_keyboard = await inline_keybords.generate_calendar(year, month)
         await IncomeSpendForm.date.set()
-        await call.message.answer("Выберите дату:", reply_markup=calendar_keyboard)
+        await call.message.answer("Выберите дату:", reply_markup=calendar_keyboard, disable_notification=True)
         await call.answer()
     except Exception as e:
         logging.error(f"{send_date_picker.__name__}: {e}. Пользователь с id {call.from_user.id}.")
@@ -114,9 +115,10 @@ async def send_category_picker(call: CallbackQuery) -> None:
         keyboard = await inline_keybords.generate_category_keyboard(categories)
         await IncomeSpendForm.category.set()
         if len(categories) == 0:
-            await call.message.answer("У вас нет категорий, добавьте их в настройках.", reply_markup=keyboard)
+            await call.message.answer("У вас нет категорий, добавьте их в настройках.", reply_markup=keyboard,
+                                      disable_notification=True)
         else:
-            await call.message.answer("Выберите категорию:", reply_markup=keyboard)
+            await call.message.answer("Выберите категорию:", reply_markup=keyboard, disable_notification=True)
         await call.answer()
     except Exception as e:
         logging.error(f"{send_category_picker.__name__}: {e}. Пользователь с id {call.from_user.id}.")
@@ -138,16 +140,17 @@ async def send_sub_category_picker(call: CallbackQuery, state: FSMContext) -> No
         if 'category' not in data.keys():
             keyboard = await inline_keybords.generate_subcategory_keyboard([])
             await call.message.answer("Выберете категорию для того, чтобы добавлять подкатегорию.",
-                                      reply_markup=keyboard)
+                                      reply_markup=keyboard, disable_notification=True)
         else:
             if data['category'] in categories_raw.keys() and len(categories_raw[data['category']]) > 0:
                 keyboard = await inline_keybords.generate_subcategory_keyboard(categories_raw[data['category']])
+                print(categories_raw[data['category']])
                 await call.message.answer("Выберете подкатегорию:",
-                                          reply_markup=keyboard)
+                                          reply_markup=keyboard, disable_notification=True)
             else:
                 keyboard = await inline_keybords.generate_subcategory_keyboard([])
                 await call.message.answer("Сначала добавьте подкатегории в свою категорию:",
-                                          reply_markup=keyboard)
+                                          reply_markup=keyboard, disable_notification=True)
         await call.answer()
         await IncomeSpendForm.subcategory.set()
     except Exception as e:
@@ -168,12 +171,12 @@ async def add_category_message_handler(call: CallbackQuery, state: FSMContext) -
         await call.message.delete()
         await state.update_data(category=str(category))
         await state.update_data(subcategory=None)
-        await call.message.answer(f"Категория: {category} установлена! Подкатегория сброшена!")
+        await call.answer(f"Категория: {category} установлена! Подкатегория сброшена!")
         await IncomeSpendForm.isSpend.set()
     except Exception as e:
         logging.error(f"{add_category_message_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
+        await call.answer("Произошла непредвиденная ошибка, попробуйте присвоить категорию снова!")
         await call.message.delete()
-        await call.message.answer("Произошла непредвиденная ошибка, попробуйте присвоить категорию снова!")
         await IncomeSpendForm.isSpend.set()
 
 
@@ -190,12 +193,12 @@ async def add_subcategory_message_handler(call: CallbackQuery, state: FSMContext
         category = call.data[19:]
         await call.message.delete()
         await state.update_data(subcategory=str(category))
-        await call.message.answer(f"Подкатегория: {category} установлена!")
+        await call.answer(f"Подкатегория: {category} установлена!")
         await IncomeSpendForm.isSpend.set()
     except Exception as e:
         logging.error(f"{add_subcategory_message_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
         await call.message.delete()
-        await call.message.answer("Произошла непредвиденная ошибка, попробуйте присвоить категорию снова!")
+        await call.answer("Произошла непредвиденная ошибка, попробуйте присвоить категорию снова!")
         await IncomeSpendForm.isSpend.set()
 
 
@@ -208,7 +211,6 @@ async def proceed_handler(call: CallbackQuery, state: FSMContext) -> None:
     """
     try:
         logging.debug(f"Добавляем информацию. Пользователь с id {call.from_user.id}.")
-        await call.answer()
         logging.debug(await state.get_data())
         value = (await state.get_data())['value']
         name = None
@@ -240,14 +242,16 @@ async def proceed_handler(call: CallbackQuery, state: FSMContext) -> None:
                                                   subcategory=subcategory, value=value, name=name, date=date)
         await call.message.delete()
         if st:
+            await call.answer(f"Добавление завершено успешно!")
             await call.message.answer(f"Добавление завершено успешно!")
         else:
+            await call.answer(f"Добавление не завершено, повторите попытку!")
             await call.message.answer(f"Добавление не завершено, повторите попытку!")
         await state.finish()
         await IncomeSpendForm.value.set()
     except Exception as e:
         logging.error(f"{proceed_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
-        await call.message.answer("При добавлении произошла ошибка, попробуйте еще раз! Нажав 'Отмена'")
+        await call.answer("При добавлении произошла ошибка, попробуйте еще раз! Нажав 'Отмена'")
         await IncomeSpendForm.value.set()
 
 
@@ -261,7 +265,7 @@ async def add_name_handler(call: CallbackQuery) -> None:
         logging.debug(f"Изменяем имя. Пользователь с id {call.from_user.id}.")
         await call.answer()
         await IncomeSpendForm.name.set()
-        await call.message.answer("Отправьте имя суммы.")
+        await call.message.answer("Отправьте имя суммы.", disable_notification=True)
     except Exception as e:
         logging.error(f"{add_name_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
         await IncomeSpendForm.isSpend.set()
@@ -286,8 +290,10 @@ async def add_name_message_handler(message: types.Message, state: FSMContext) ->
             await IncomeSpendForm.name.set()
         else:
             await message.delete()
-            await state.update_data(name=str(message.text))
-            await message.answer(f"Имя: {str(message.text)} установлено!")
+            name = str(message.text)
+            name = re.sub(r'[^\w\s]', '', name)
+            await state.update_data(name=name)
+            await message.answer(f"Имя: {name} установлено!", disable_notification=True)
             await IncomeSpendForm.isSpend.set()
     except Exception as e:
         logging.error(f"{add_name_message_handler.__name__}: {e}. Пользователь с id {message.from_user.id}.")
@@ -307,9 +313,9 @@ async def add_date_message_handler(call: CallbackQuery, state: FSMContext) -> No
         logging.debug(f"Получаем дату. Пользователь с id {call.from_user.id}.")
         year, month, day = map(int, call.data.split(':')[1:])
         data = datetime(year, month, day).strftime("%Y-%m-%d")
-        await call.message.delete()
         await state.update_data(date=str(data))
-        await call.message.answer(f"Дата: {data} установлена!")
+        await call.answer(f"Дата: {data} установлена!")
+        await call.message.delete()
         await IncomeSpendForm.isSpend.set()
     except Exception as e:
         logging.error(f"{add_date_message_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
@@ -327,14 +333,13 @@ async def cancel_handler(call: CallbackQuery, state: FSMContext) -> None:
     """
     try:
         logging.debug(f'Отменяем состояние. Сбрасываем набор состояний. Пользователь с id {call.from_user.id}.')
-        await call.answer()
         current_state = await state.get_state()
         if current_state is None:
             await IncomeSpendForm.value.set()
             return
         await state.finish()
+        await call.answer(text='Отмена!')
         await call.message.delete()
-        await call.message.answer('Отмена!')
         await IncomeSpendForm.value.set()
     except Exception as e:
         logging.error(f"{cancel_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
@@ -349,7 +354,7 @@ async def ignore_handler(call: CallbackQuery) -> None:
     """
     try:
         logging.debug(f'Игнорируем кнопку. Пользователь с id {call.from_user.id}.')
-        await call.answer()
+        await call.answer("Это не кнопка!")
     except Exception as e:
         logging.error(f"{ignore_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
         await IncomeSpendForm.value.set()

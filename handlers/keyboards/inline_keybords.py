@@ -123,16 +123,16 @@ async def generate_calendar(year: int, month: int) -> InlineKeyboardMarkup:
 income_spend_category_inline = InlineKeyboardMarkup(
     inline_keyboard=[
         [
-            InlineKeyboardButton(text="➖ Доход 📈", callback_data="delete:income:button"),
-            InlineKeyboardButton(text="➖ Трату 📉", callback_data="delete:spend:button"),
+            InlineKeyboardButton(text="[-] Доход 📈", callback_data="delete:income:button"),
+            InlineKeyboardButton(text="[-] Трату 📉", callback_data="delete:spend:button"),
         ],
         [
-            InlineKeyboardButton(text="➕ Категория", callback_data="add:category:button"),
-            InlineKeyboardButton(text="➕ Подкатегория", callback_data="add:subcategory:button"),
+            InlineKeyboardButton(text="[+] Категория", callback_data="add:category:button"),
+            InlineKeyboardButton(text="[+] Подкатегория", callback_data="add:subcategory:button"),
         ],
         [
-            InlineKeyboardButton(text="➖ Категория", callback_data="delete:category:button"),
-            InlineKeyboardButton(text="➖ Подкатегория", callback_data="delete:subcategory:button"),
+            InlineKeyboardButton(text="[-] Категория", callback_data="delete:category:button"),
+            InlineKeyboardButton(text="[-] Подкатегория", callback_data="delete:subcategory:button"),
         ],
         [
             InlineKeyboardButton(text="❌ Назад", callback_data="cancel"),
@@ -159,3 +159,25 @@ async def generate_category_choice_keyboard(buttons: list) -> InlineKeyboardMark
         InlineKeyboardButton("❌ Назад", callback_data="category:delete")
     )
     return keyboard
+
+
+async def create_inline_keyboard_sums(data_dict, current_page):
+    inline_keyboard = InlineKeyboardMarkup(row_width=1)
+    page_size = 5
+    start_index = current_page * page_size
+    end_index = start_index + page_size
+    for item in list(data_dict.keys())[start_index:end_index]:
+        text = ""
+        if 'name_of_income' in data_dict[item].keys():
+            text += f"[{data_dict[item]['name_of_income']}] {data_dict[item]['value_of_income']} [{data_dict[item]['date_of_income']}]"
+        else:
+            text += f"[{data_dict[item]['name_of_spend']}] {data_dict[item]['value_of_spend']} [{data_dict[item]['date_of_spend']}]"
+        inline_keyboard.add(InlineKeyboardButton(text=str(text), callback_data=f"delete:sum:{item}"))
+    pagination_row = []
+    if current_page > 0:
+        pagination_row.append(InlineKeyboardButton(text="⬅️", callback_data=f"current_page:{current_page - 1}"))
+    if end_index < len(data_dict):
+        pagination_row.append(InlineKeyboardButton(text="➡️", callback_data=f"current_page:{current_page + 1}"))
+    pagination_row.append(InlineKeyboardButton("❌ Назад", callback_data="category:delete"))
+    inline_keyboard.row(*pagination_row)
+    return inline_keyboard
