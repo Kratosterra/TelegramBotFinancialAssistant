@@ -5,7 +5,8 @@ from aiogram.dispatcher.filters import Text
 
 from bot import dp
 from database import db_functions
-from handlers.keyboards import keyboard
+from handlers.keyboards import keyboard, inline_keybords
+from handlers.models.categories_deletion_model import CategoriesAddingForm
 from handlers.models.income_spend_model import IncomeSpendForm
 from texts.ru_RU import messages
 
@@ -62,7 +63,10 @@ async def on_incomes_spends(message: types.Message) -> None:
     try:
         await db_functions.execute_events(str(message.from_user.id))
         await message.delete()
-        await message.answer("Активируем Траты и Доходы")
+        await CategoriesAddingForm.start.set()
+        await message.answer("*Траты и Доходы\!*\nТут вы можете добавить и удалить категории/подкатегории\.\n"
+                             "А также *удалить* доходы/траты\!", parse_mode="MarkdownV2",
+                             reply_markup=inline_keybords.income_spend_category_inline)
     except Exception as e:
         logging.error(f"{on_incomes_spends.__name__}: {e}. Пользователь с id {message.from_user.id}.")
 

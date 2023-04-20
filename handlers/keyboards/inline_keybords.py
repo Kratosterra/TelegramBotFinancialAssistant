@@ -117,3 +117,45 @@ async def generate_calendar(year: int, month: int) -> InlineKeyboardMarkup:
         InlineKeyboardButton("❌ Назад", callback_data="calendar:delete")
     )
     return keyboard
+
+
+# Клавиатура, которая появляется, когда пользователь выбирает кнопку Траты и Доходы.
+income_spend_category_inline = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [
+            InlineKeyboardButton(text="➖ Доход 📈", callback_data="delete:income:button"),
+            InlineKeyboardButton(text="➖ Трату 📉", callback_data="delete:spend:button"),
+        ],
+        [
+            InlineKeyboardButton(text="➕ Категория", callback_data="add:category:button"),
+            InlineKeyboardButton(text="➕ Подкатегория", callback_data="add:subcategory:button"),
+        ],
+        [
+            InlineKeyboardButton(text="➖ Категория", callback_data="delete:category:button"),
+            InlineKeyboardButton(text="➖ Подкатегория", callback_data="delete:subcategory:button"),
+        ],
+        [
+            InlineKeyboardButton(text="❌ Назад", callback_data="cancel"),
+        ]
+    ]
+)
+
+
+async def generate_category_choice_keyboard(buttons: list) -> InlineKeyboardMarkup:
+    """
+    Функция, которая генерирует клавиатуру для выбора категории.
+    :param buttons: Лист строк, которые будут представлять категории
+    :return: Разметку клавиатуры.
+    """
+    keyboard = InlineKeyboardMarkup(row_width=3)
+    check = 0
+    for button_text in buttons:
+        keyboard.insert(InlineKeyboardButton(button_text, callback_data=f"choice:category:{button_text}"))
+        check += 1
+        if check == 2:
+            keyboard.row()
+            check = 0
+    keyboard.row(
+        InlineKeyboardButton("❌ Назад", callback_data="category:delete")
+    )
+    return keyboard
