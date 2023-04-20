@@ -3,20 +3,21 @@ from aiogram.dispatcher.filters.state import State, StatesGroup
 
 class CategoriesAddingForm(StatesGroup):
     """
-    Класс, отвечающий за хранение состояний добавления сумм как доходов или трат.
+    Класс, отвечающий за хранение состояний меню Траты и Доходы.
     """
-    # Хранит значение
+    # Стартовое значение
     start = State()
-    # Является ли сумма тратой
+    # Удаление дохода
     delete_income = State()
-    # Имя суммы
+    # Удаление траты
     delete_spend = State()
-    # Категория траты
+    # Добавление категории
     add_category = State()
-    # Подкатегория траты
+    # Добавление подкатегории
     add_subcategory_by_category = State()
     add_subcategory = State()
-    # Дата суммы
+    # Удаление категории
     delete_category = State()
+    # Удаление подкатегории траты
     delete_subcategory_by_category = State()
     delete_subcategory = State()

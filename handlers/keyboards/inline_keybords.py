@@ -161,7 +161,13 @@ async def generate_category_choice_keyboard(buttons: list) -> InlineKeyboardMark
     return keyboard
 
 
-async def create_inline_keyboard_sums(data_dict, current_page):
+async def create_inline_keyboard_sums(data_dict: dict, current_page: int) -> InlineKeyboardMarkup:
+    """
+    Создаёт клавиатуру для выбора сумм из базы данных для пользователя.
+    :param data_dict: Словарь с сумами.
+    :param current_page: Текущая страница.
+    :return: Клавиатуру
+    """
     inline_keyboard = InlineKeyboardMarkup(row_width=1)
     page_size = 5
     start_index = current_page * page_size

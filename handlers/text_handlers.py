@@ -502,3 +502,16 @@ async def cancel_subcategory_handler(call: CallbackQuery, state: FSMContext) -> 
     except Exception as e:
         logging.error(f"{cancel_subcategory_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
         await state.set_state(IncomeSpendForm.isSpend)
+
+@dp.callback_query_handler(state='*')
+async def ignore_handler(call: CallbackQuery) -> None:
+    """
+    Функция, которая игнорирует нажатие, на неактивные кнопки.
+    :param call: Запрос от кнопки.
+    """
+    try:
+        logging.debug(f'Игнорируем кнопку. Пользователь с id {call.from_user.id}.')
+        await call.answer("Недоступно!")
+    except Exception as e:
+        logging.error(f"{ignore_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
+        await IncomeSpendForm.value.set()

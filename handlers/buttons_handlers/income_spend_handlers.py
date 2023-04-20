@@ -37,7 +37,7 @@ async def add_category_handler(call: CallbackQuery) -> None:
 @dp.callback_query_handler(text_contains='delete:subcategory:button', state=CategoriesAddingForm.start)
 async def delete_subcategory_handler(call: CallbackQuery) -> None:
     """
-    Функция, которая обрабатывает нажатие на кнопку добавления, отправляя запрос на предоставление имени категории.
+    Функция, которая обрабатывает нажатие на кнопку удаления подкатегории, отправляя запрос на предоставление имени подкатегории.
     :param call: Запрос от кнопки.
     """
     try:
@@ -56,7 +56,7 @@ async def delete_subcategory_handler(call: CallbackQuery) -> None:
 @dp.callback_query_handler(text_contains='delete:income:button', state=CategoriesAddingForm.start)
 async def delete_income_handler(call: CallbackQuery) -> None:
     """
-    Функция, которая обрабатывает нажатие на кнопку добавления, отправляя запрос на предоставление имени категории.
+    Функция, которая обрабатывает нажатие на кнопку удаления дохода.
     :param call: Запрос от кнопки.
     """
     try:
@@ -82,13 +82,13 @@ async def delete_income_handler(call: CallbackQuery) -> None:
 
 
 @dp.callback_query_handler(text_contains='delete:spend:button', state=CategoriesAddingForm.start)
-async def delete_income_handler(call: CallbackQuery) -> None:
+async def delete_spend_handler(call: CallbackQuery) -> None:
     """
-    Функция, которая обрабатывает нажатие на кнопку добавления, отправляя запрос на предоставление имени категории.
+    Функция, которая обрабатывает нажатие на кнопку удаления траты.
     :param call: Запрос от кнопки.
     """
     try:
-        logging.debug(f"Удаляем доход. Пользователь с id {call.from_user.id}.")
+        logging.debug(f"Удаляем трату. Пользователь с id {call.from_user.id}.")
         await call.answer()
         await CategoriesAddingForm.delete_spend.set()
         data_dict = await db_functions.return_all_spends(str(call.from_user.id))
@@ -105,7 +105,7 @@ async def delete_income_handler(call: CallbackQuery) -> None:
         await call.message.answer(f"Выберете, какую трату удалим:", reply_markup=keyboard,
                                   disable_notification=True)
     except Exception as e:
-        logging.error(f"{delete_income_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
+        logging.error(f"{delete_spend_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
         await CategoriesAddingForm.start.set()
 
 
@@ -113,7 +113,7 @@ async def delete_income_handler(call: CallbackQuery) -> None:
                            state=CategoriesAddingForm.delete_income)
 async def delete_income_button_handler(call: CallbackQuery) -> None:
     """
-    Функция, которая обрабатывает нажатие на кнопку добавления, отправляя запрос на предоставление имени категории.
+    Функция, которая обрабатывает нажатие на кнопку удаления дохода.
     :param call: Запрос от кнопки.
     """
     try:
@@ -133,9 +133,9 @@ async def delete_income_button_handler(call: CallbackQuery) -> None:
 
 @dp.callback_query_handler(lambda c: c.data and c.data.startswith('delete:sum:'),
                            state=CategoriesAddingForm.delete_spend)
-async def delete_income_button_handler(call: CallbackQuery) -> None:
+async def delete_spend_button_handler(call: CallbackQuery) -> None:
     """
-    Функция, которая обрабатывает нажатие на кнопку добавления, отправляя запрос на предоставление имени категории.
+    Функция, которая обрабатывает нажатие на кнопку удаления траты.
     :param call: Запрос от кнопки.
     """
     try:
@@ -147,7 +147,7 @@ async def delete_income_button_handler(call: CallbackQuery) -> None:
         await call.message.delete()
         await CategoriesAddingForm.start.set()
     except Exception as e:
-        logging.error(f"{delete_income_button_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
+        logging.error(f"{delete_spend_button_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
         await call.message.delete()
         await call.message.answer("Произошла непредвиденная ошибка, попробуйте удалить трату снова!")
         await CategoriesAddingForm.start.set()
@@ -155,9 +155,9 @@ async def delete_income_button_handler(call: CallbackQuery) -> None:
 
 @dp.callback_query_handler(lambda c: c.data and c.data.startswith('current_page:'),
                            state=CategoriesAddingForm.delete_income)
-async def delete_income_handler(call: CallbackQuery) -> None:
+async def change_page_income_handler(call: CallbackQuery) -> None:
     """
-    Функция, которая обрабатывает нажатие на кнопку добавления, отправляя запрос на предоставление имени категории.
+    Функция, которая перестраивает меню удаления доходов.
     :param call: Запрос от кнопки.
     """
     try:
@@ -169,19 +169,19 @@ async def delete_income_handler(call: CallbackQuery) -> None:
         keyboard = await inline_keybords.create_inline_keyboard_sums(data_dict, page)
         await call.message.edit_text("Выберете, какой доход удалим:", reply_markup=keyboard)
     except Exception as e:
-        logging.error(f"{delete_income_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
+        logging.error(f"{change_page_income_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
         await CategoriesAddingForm.start.set()
 
 
 @dp.callback_query_handler(lambda c: c.data and c.data.startswith('current_page:'),
                            state=CategoriesAddingForm.delete_spend)
-async def delete_income_handler(call: CallbackQuery) -> None:
+async def change_page_spend_handler(call: CallbackQuery) -> None:
     """
-    Функция, которая обрабатывает нажатие на кнопку добавления, отправляя запрос на предоставление имени категории.
+    Функция, которая перестраивает меню удаления трат.
     :param call: Запрос от кнопки.
     """
     try:
-        logging.debug(f"Переходи на другую страницу удаления дохода. Пользователь с id {call.from_user.id}.")
+        logging.debug(f"Переходи на другую страницу удаления трат. Пользователь с id {call.from_user.id}.")
         await call.answer()
         data_dict = await db_functions.return_all_spends(str(call.from_user.id))
         page = call.data.split(':')
@@ -189,14 +189,14 @@ async def delete_income_handler(call: CallbackQuery) -> None:
         keyboard = await inline_keybords.create_inline_keyboard_sums(data_dict, page)
         await call.message.edit_text("Выберете, какую трату удалим:", reply_markup=keyboard)
     except Exception as e:
-        logging.error(f"{delete_income_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
+        logging.error(f"{change_page_spend_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
         await CategoriesAddingForm.start.set()
 
 
 @dp.callback_query_handler(text_contains='delete:category:button', state=CategoriesAddingForm.start)
 async def delete_category_handler(call: CallbackQuery) -> None:
     """
-    Функция, которая обрабатывает нажатие на кнопку добавления, отправляя запрос на предоставление имени категории.
+    Функция, которая обрабатывает нажатие на кнопку удаления, отправляя запрос на предоставление имени категории.
     :param call: Запрос от кнопки.
     """
     try:
@@ -242,7 +242,7 @@ async def delete_subcategory_callback_handler(call: CallbackQuery, state: FSMCon
                            state=CategoriesAddingForm.delete_subcategory_by_category)
 async def delete_subcategory_message_handler(call: CallbackQuery, state: FSMContext) -> None:
     """
-    Функция, которая реагирует на выбор категории кнопкой, удаляя ее.
+    Функция, которая реагирует на выбор подкатегории кнопкой, удаляя ее.
     :param call: Вызов от кнопки.
     :param state: Состояние.
     """
@@ -264,7 +264,7 @@ async def delete_subcategory_message_handler(call: CallbackQuery, state: FSMCont
 
 @dp.callback_query_handler(lambda c: c.data and c.data.startswith('choice:category:'),
                            state=CategoriesAddingForm.delete_category)
-async def add_subcategory_message_handler(call: CallbackQuery, state: FSMContext) -> None:
+async def delete_category_message_handler(call: CallbackQuery, state: FSMContext) -> None:
     """
     Функция, которая реагирует на выбор категории кнопкой, удаляя ее.
     :param call: Вызов от кнопки.
@@ -279,7 +279,7 @@ async def add_subcategory_message_handler(call: CallbackQuery, state: FSMContext
         await call.message.delete()
         await CategoriesAddingForm.start.set()
     except Exception as e:
-        logging.error(f"{delete_category_callback_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
+        logging.error(f"{delete_category_message_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
         await call.answer("Произошла непредвиденная ошибка, попробуйте удалить категорию снова!")
         await call.message.delete()
         await CategoriesAddingForm.start.set()
@@ -329,7 +329,7 @@ async def add_category_message_handler(message: types.Message) -> None:
 @dp.callback_query_handler(text_contains='add:subcategory:button', state=CategoriesAddingForm.start)
 async def add_subcategory_handler(call: CallbackQuery) -> None:
     """
-    Функция, которая обрабатывает нажатие на кнопку добавления, отправляя запрос на предоставление имени категории.
+    Функция, которая обрабатывает нажатие на кнопку добавления подкатегории.
     :param call: Запрос от кнопки.
     """
     try:
@@ -369,14 +369,14 @@ async def add_subcategory_message_handler(call: CallbackQuery, state: FSMContext
         await call.message.answer(f"Отправьте имя новой подкатегории. Вот список текущих:\n{string}",
                                   disable_notification=True)
     except Exception as e:
-        logging.error(f"{delete_category_callback_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
+        logging.error(f"{add_subcategory_message_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
         await call.message.delete()
         await call.message.answer("Произошла непредвиденная ошибка, попробуйте добавить подкатегорию снова!")
         await CategoriesAddingForm.start.set()
 
 
 @dp.message_handler(state=CategoriesAddingForm.add_subcategory_by_category)
-async def delete_category_callback_handler(message: types.Message, state: FSMContext) -> None:
+async def add_category_callback_handler(message: types.Message, state: FSMContext) -> None:
     """
     Функция, которая реагирует на отправление любого сообщения, после нажатия на кнопку добавления категории.
     :param state: Состояние.
@@ -413,7 +413,7 @@ async def delete_category_callback_handler(message: types.Message, state: FSMCon
                                  disable_notification=True)
             await CategoriesAddingForm.start.set()
     except Exception as e:
-        logging.error(f"{delete_category_callback_handler.__name__}: {e}. Пользователь с id {message.from_user.id}.")
+        logging.error(f"{add_category_callback_handler.__name__}: {e}. Пользователь с id {message.from_user.id}.")
         await message.delete()
         await message.answer("Произошла непредвиденная ошибка, попробуйте добавить подкатегорию снова!")
         await CategoriesAddingForm.start.set()
