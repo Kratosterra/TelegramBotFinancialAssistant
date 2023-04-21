@@ -8,6 +8,8 @@ from database import db_functions
 from handlers.keyboards import keyboard, inline_keybords
 from handlers.models.categories_deletion_model import CategoriesAddingForm
 from handlers.models.income_spend_model import IncomeSpendForm
+from handlers.models.report_model import ReportForm
+from handlers.models.settings_model import SettingsForm
 from texts.ru_RU import messages
 
 
@@ -34,8 +36,13 @@ async def on_report(message: types.Message) -> None:
     """
     try:
         await db_functions.execute_events(str(message.from_user.id))
-        await message.answer("Активируем Отчёты и экспорт")
         await message.delete()
+        await ReportForm.start.set()
+        await message.answer(
+            "*Отчёты и экспорт\!* 📊\n\nЗдесь вам доступна возможность получить *краткий отчет* за месяц в чат или"
+            " *полноценный отчет* за выбранный период в формате *\.xlsx*\.\n"
+            "Также вы можете произвести экспорт, вам будет прислан файл в формате *\.csv*\!\n", parse_mode="MarkdownV2",
+            reply_markup=inline_keybords.report_inline)
     except Exception as e:
         logging.error(f"{on_report.__name__}: {e}. Пользователь с id {message.from_user.id}.")
 
@@ -49,7 +56,7 @@ async def on_info(message: types.Message) -> None:
     try:
         await db_functions.execute_events(str(message.from_user.id))
         await message.delete()
-        await message.answer("Активируем Информация")
+        await message.answer("*ℹ️ Бюджет*\n\nКраткая информация по состоянию бюджета\.\n", parse_mode="MarkdownV2")
     except Exception as e:
         logging.error(f"{on_info.__name__}: {e}. Пользователь с id {message.from_user.id}.")
 
@@ -96,7 +103,12 @@ async def on_settings(message: types.Message) -> None:
     try:
         await db_functions.execute_events(str(message.from_user.id))
         await message.delete()
-        await message.answer("Активируем Настройки")
+        await SettingsForm.start.set()
+        await message.answer(
+            "*Настройки\!* ⚙️\n\nТут вы сможете *сменить валюту*, перенести *остаток по средствам* с прошлого месяца\.\n"
+            "Добавить или удалить *события* трат или доходов\, которые повторяются каждый месяц в заданный день\!\n"
+            "Настроить *цель* по сэкономленным средствам и *лимит* по тратам за месяц\!\n", parse_mode="MarkdownV2",
+            reply_markup=inline_keybords.settings_inline)
     except Exception as e:
         logging.error(f"{on_settings.__name__}: {e}. Пользователь с id {message.from_user.id}.")
 
@@ -122,13 +134,14 @@ async def on_files(message: types.Message) -> None:
     :param message: Экземпляр сообщения.
     """
     try:
-        await db_functions.execute_events(str(message.from_user.id))
         if message.document:
+            await db_functions.execute_events(str(message.from_user.id))
             logging.debug(f"Получил документ {message.document.file_name}. Пользователь с id {message.from_user.id}.")
-            await message.answer("Импорт")
+            await message.answer("*Приступаю к импорту\.\.\.*", parse_mode="MarkdownV2")
         if message.photo:
+            await db_functions.execute_events(str(message.from_user.id))
             logging.debug(f"Получил фото. Пользователь с id {message.from_user.id}.")
-            await message.answer("Сканирование QR")
+            await message.answer("*Сканирование QR\.\.\.*", parse_mode="MarkdownV2")
     except Exception as e:
         logging.error(f"{on_files.__name__}: {e}. Пользователь с id {message.from_user.id}.")
 

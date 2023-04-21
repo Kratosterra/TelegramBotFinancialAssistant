@@ -12,6 +12,8 @@ from database import db_functions
 from handlers.keyboards import inline_keybords
 from handlers.models.categories_deletion_model import CategoriesAddingForm
 from handlers.models.income_spend_model import IncomeSpendForm
+from handlers.models.report_model import ReportForm
+from handlers.models.settings_model import SettingsForm
 from texts.ru_RU import messages
 
 
@@ -332,7 +334,7 @@ async def add_date_message_handler(call: CallbackQuery, state: FSMContext) -> No
 
 @dp.callback_query_handler(text_contains='cancel',
                            state=[IncomeSpendForm.isSpend, IncomeSpendForm.value,
-                                  CategoriesAddingForm.start])
+                                  CategoriesAddingForm.start, SettingsForm.start, ReportForm.start])
 async def cancel_handler(call: CallbackQuery, state: FSMContext) -> None:
     """
     Позволяет пользователю завершить любое действие. Сбрасывает набор состояний.
@@ -377,7 +379,6 @@ async def on_all_not_command_message(message: types.Message, state: FSMContext) 
     """
     try:
         logging.debug(f"Получил текст. Пользователь с id {message.from_user.id}.")
-        await db_functions.execute_events(str(message.from_user.id))
         check = message.text
         if check.replace('.', '', 1).isdigit():
             if float(message.text) > 0:

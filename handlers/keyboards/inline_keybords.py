@@ -187,3 +187,46 @@ async def create_inline_keyboard_sums(data_dict: dict, current_page: int) -> Inl
     pagination_row.append(InlineKeyboardButton("❌ Назад", callback_data="category:delete"))
     inline_keyboard.row(*pagination_row)
     return inline_keyboard
+
+
+# Клавиатура, которая появляется, когда пользователь выбирает настройки.
+settings_inline = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [
+            InlineKeyboardButton(text="💱 Сменить валюту и пересчитать", callback_data="settings:change:currency"),
+        ],
+        [
+            InlineKeyboardButton(text="📝 Cобытие", callback_data="settings:add:event"),
+            InlineKeyboardButton(text="🗑 Cобытие", callback_data="settings:delete:event"),
+        ],
+        [
+            InlineKeyboardButton(text="💰 Лимит", callback_data="settings:add:limit"),
+            InlineKeyboardButton(text="📩 Цель", callback_data="settings:add:goal"),
+        ],
+        [
+            InlineKeyboardButton(text="💸 Перенести остаток", callback_data="settings:transfer:remainer"),
+        ]
+        ,
+        [
+            InlineKeyboardButton(text="❌ Назад", callback_data="cancel"),
+        ]
+    ]
+)
+
+# Клавиатура, которая появляется, когда пользователь выбирает отчеты и экспорт.
+report_inline = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [
+            InlineKeyboardButton(text="📄 Краткий отчет", callback_data="report:small"),
+        ],
+        [
+            InlineKeyboardButton(text="📊 Подробный отчет", callback_data="report:full"),
+        ],
+        [
+            InlineKeyboardButton(text="📤 Экспорт", callback_data="report:export"),
+        ],
+        [
+            InlineKeyboardButton(text="❌ Назад", callback_data="cancel"),
+        ]
+    ]
+)
