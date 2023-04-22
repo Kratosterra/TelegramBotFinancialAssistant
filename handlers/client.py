@@ -10,6 +10,7 @@ from handlers.models.categories_deletion_model import CategoriesAddingForm
 from handlers.models.income_spend_model import IncomeSpendForm
 from handlers.models.report_model import ReportForm
 from handlers.models.settings_model import SettingsForm
+from helpers import information
 from texts.ru_RU import messages
 
 
@@ -56,7 +57,9 @@ async def on_info(message: types.Message) -> None:
     try:
         await db_functions.execute_events(str(message.from_user.id))
         await message.delete()
-        await message.answer("*ℹ️ Бюджет*\n\nКраткая информация по состоянию бюджета\.\n", parse_mode="MarkdownV2")
+        await message.answer(f"*ℹ️ Бюджет*\n\nКраткая информация по состоянию бюджета\.\n\n"
+                             f"{await information.get_budget_of_user(str(message.from_user.id))}",
+                             parse_mode="MarkdownV2")
     except Exception as e:
         logging.error(f"{on_info.__name__}: {e}. Пользователь с id {message.from_user.id}.")
 
@@ -93,6 +96,7 @@ async def on_incomes_spends(message: types.Message) -> None:
             "Пример: *123* или *123\.32*\n\nЭта кнопка \- просто подсказка\.", parse_mode="MarkdownV2")
     except Exception as e:
         logging.error(f"{on_incomes_spends.__name__}: {e}. Пользователь с id {message.from_user.id}.")
+
 
 @dp.message_handler(Text(equals='⚙️ Настройки'), state=IncomeSpendForm.value)
 async def on_settings(message: types.Message) -> None:

@@ -853,10 +853,10 @@ async def check_goal(user_id: str) -> bool or None:
     :param user_id: ID пользователя Telegram.
     :return: Выполнена ли цель по средствам.
     """
-    goal = get_goal(user_id)
+    goal = await get_goal(user_id)
     if goal is None:
         return None
-    remained = get_remained(user_id)
+    remained = await get_remained(user_id)
     if remained is None:
         return None
     if remained < 0:
@@ -873,10 +873,10 @@ async def check_limit(user_id: str) -> bool or None:
     :param user_id: ID пользователя Telegram.
     :return: Выполнена ли цель по средствам.
     """
-    limit = get_limit(user_id)
+    limit = await get_limit(user_id)
     if limit is None:
         return None
-    spend_sum = return_sum_spend(user_id, None, None, True)
+    spend_sum = await return_sum_spend(user_id, None, None, True)
     if spend_sum <= limit:
         return True
     else:
@@ -953,8 +953,10 @@ async def _recount_all_values_of_user(user_id: str, exchange_rate: float) -> boo
         sql.execute("UPDATE spend SET value_of_spend = round(value_of_spend * ?, 2)", (exchange_rate,))
         # Обновляем значения в таблице user_data
         sql.execute("UPDATE user_data SET goal = round(goal * ?, 2)", (exchange_rate,))
-        lim = get_limit(user_id) * exchange_rate
-        sql.execute("UPDATE user_data SET 'limit' = round(?, 2)", (lim,))
+        lim = (await get_limit(user_id))
+        if lim is not None:
+            lim = lim * exchange_rate
+            sql.execute("UPDATE user_data SET 'limit' = round(?, 2)", (lim,))
         sql.execute("UPDATE user_data SET remainer = round(remainer * ?, 2)", (exchange_rate,))
         db.commit()
     except sqlite3.Error as error:
@@ -983,13 +985,13 @@ async def recount_values_in_new_currency(user_id: str, to_currency: str) -> bool
         return False
     try:
         exchange_rate = helpers.curency_parser.get_exchange_rate(now_currency, to_currency)
+        status = await _recount_all_values_of_user(user_id, exchange_rate)
+        status = status and await _set_user_currency(user_id, to_currency)
+        return status
     except Exception as e:
         logging.error(f"{recount_values_in_new_currency.__name__}: {e} для "
                       f"пользователя с id: {user_id}.")
         return False
-    status = await _recount_all_values_of_user(user_id, exchange_rate)
-    status = status and await _set_user_currency(user_id, to_currency)
-    return status
 
 
 async def transfer_remained_from_past_months(user_id: str) -> bool:
@@ -1012,11 +1014,11 @@ async def transfer_remained_from_past_months(user_id: str) -> bool:
     if flag_is_used_this_months:
         logging.debug(f"{transfer_remained_from_past_months.__name__}: Предупреждение! Перенос уже использован для "
                       f"пользователя с id: {user_id} в этом месяце.")
-        return True
+        return False
     if remained > 0:
-        status = add_income(user_id, remained, f"Остаток с прошлого месяца", type_of_income="remained")
+        status = await add_income(user_id, remained, f"Остаток с прошлого месяца", type_of_income="remained")
     else:
         logging.debug(f"{transfer_remained_from_past_months.__name__}: Предупреждение! Неположительный остаток для "
                       f"пользователя с id: {user_id}.")
-        status = True
+        status = False
     return status

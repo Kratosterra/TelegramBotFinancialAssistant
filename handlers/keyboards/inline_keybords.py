@@ -230,3 +230,23 @@ report_inline = InlineKeyboardMarkup(
         ]
     ]
 )
+
+
+async def generate_currency_choice_keyboard(buttons: list) -> InlineKeyboardMarkup:
+    """
+    Функция, которая генерирует клавиатуру для выбора категории.
+    :param buttons: Лист строк, которые будут представлять категории
+    :return: Разметку клавиатуры.
+    """
+    keyboard = InlineKeyboardMarkup(row_width=3)
+    check = 0
+    for button_text in buttons:
+        keyboard.insert(InlineKeyboardButton(button_text, callback_data=f"choice:currency:{button_text}"))
+        check += 1
+        if check == 2:
+            keyboard.row()
+            check = 0
+    keyboard.row(
+        InlineKeyboardButton("❌ Назад", callback_data="settings:delete")
+    )
+    return keyboard

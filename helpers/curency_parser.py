@@ -38,15 +38,15 @@ def get_exchange_rate_dict(currency_str: str) -> dict:
                     exchange_rate = float(tds[1].text)
                     exchange_rates[currency_data] = exchange_rate
         # Сохранить данные
-        with open('../config/currencies.json', 'r') as f:
+        with open('config/currencies.json', 'r') as f:
             json_string = f.read()
             data = json.loads(json_string)
         data[currency_str] = exchange_rates
-        with open('../config/currencies.json', 'w') as f:
+        with open('config/currencies.json', 'w') as f:
             json.dump(data, f)
     except Exception as e:
         logging.error(f"{get_exchange_rate_dict.__name__}: {e}. Используем старые данные!")
-        with open('../config/currencies.json', 'r') as f:
+        with open('config/currencies.json', 'r') as f:
             json_string = f.read()
             data = json.loads(json_string)
         exchange_rates = data[currency_str]

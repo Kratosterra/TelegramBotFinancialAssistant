@@ -7,3 +7,11 @@ class SettingsForm(StatesGroup):
     """
     # Стартовое значение
     start = State()
+    # Состояние смены валюты
+    change_currency = State()
+    # Состояние смены лимита
+    change_limit = State()
+    # Состояние смены цели
+    change_goal = State()
+    # Состояние смены остатка.
+    transfer_remainer = State()
