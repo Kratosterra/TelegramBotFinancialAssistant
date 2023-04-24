@@ -1,8 +1,10 @@
 import logging
 
+from aiogram import types
 from aiogram.dispatcher import FSMContext
 from aiogram.types import CallbackQuery
 
+import helpers.helpers
 from bot import dp
 from config import config
 from database import db_functions
@@ -29,7 +31,49 @@ async def change_currency_handler(call: CallbackQuery, state: FSMContext) -> Non
             "Выберете валюту\, которую мы будем использовать\.\n*Внимание\: пересчитает все данные"
             " по текущему курсу валют\!*",
             parse_mode="MarkdownV2",
-            reply_markup=await inline_keybords.generate_currency_choice_keyboard(currencies))
+            reply_markup=await inline_keybords.generate_currency_choice_keyboard(currencies), disable_notification=True)
+        await call.answer()
+    except Exception as e:
+        logging.error(f"{change_currency_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
+        await state.set_state(SettingsForm.start)
+
+
+@dp.callback_query_handler(text_contains='settings:add:limit', state=SettingsForm.start)
+async def change_limit_handler(call: CallbackQuery, state: FSMContext) -> None:
+    """
+    Функция, которая отвечает за смену текущей валюты.
+    :param call: Запрос от кнопки
+    :param state: Состояние.
+    """
+    try:
+        logging.debug(f'Меняем лимит для пользователя. Пользователь с id {call.from_user.id}.')
+        await SettingsForm.change_limit.set()
+        await call.message.answer(
+            "Отправьте число\, которое представляет ваш лимит по средствам на месяц\.\n"
+            "Пример: *30000* или *45000\.20*",
+            parse_mode="MarkdownV2",
+            reply_markup=inline_keybords.refuse_to_input, disable_notification=True)
+        await call.answer()
+    except Exception as e:
+        logging.error(f"{change_currency_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
+        await state.set_state(SettingsForm.start)
+
+
+@dp.callback_query_handler(text_contains='settings:add:goal', state=SettingsForm.start)
+async def change_goal_handler(call: CallbackQuery, state: FSMContext) -> None:
+    """
+    Функция, которая отвечает за смену текущей валюты.
+    :param call: Запрос от кнопки
+    :param state: Состояние.
+    """
+    try:
+        logging.debug(f'Меняем цель для пользователя. Пользователь с id {call.from_user.id}.')
+        await SettingsForm.change_goal.set()
+        await call.message.answer(
+            "Отправьте число\, которое представляет вашу цель по сэкономленным средствам на месяц\.\n"
+            "Пример: *30000* или *45000\.20*",
+            parse_mode="MarkdownV2",
+            reply_markup=inline_keybords.refuse_to_input, disable_notification=True)
         await call.answer()
     except Exception as e:
         logging.error(f"{change_currency_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
@@ -82,6 +126,25 @@ async def cancel_element_of_settings_handler(call: CallbackQuery, state: FSMCont
         await state.set_state(SettingsForm.start)
 
 
+@dp.callback_query_handler(text_contains='input::stop', state=[SettingsForm.change_limit, SettingsForm.change_goal])
+async def cancel_input_handler(call: CallbackQuery, state: FSMContext) -> None:
+    """
+    Функция, которая отменяет действие в настройках, возвращая к старту.
+    :param call: Запрос от кнопки.
+    :param state: Состояние.
+    """
+    try:
+        logging.debug(f'Отменяем действие в настройках. Пользователь с id {call.from_user.id}.')
+        await call.answer("Отменяем ввод!")
+        await call.message.delete()
+        data = await state.get_data()
+        await state.set_state(SettingsForm.start)
+        await state.set_data(data)
+    except Exception as e:
+        logging.error(f"{cancel_input_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
+        await state.set_state(SettingsForm.start)
+
+
 @dp.callback_query_handler(text_contains='settings:transfer:remainer', state=SettingsForm.start)
 async def transfer_remainer_handler(call: CallbackQuery, state: FSMContext) -> None:
     """
@@ -99,3 +162,79 @@ async def transfer_remainer_handler(call: CallbackQuery, state: FSMContext) -> N
     except Exception as e:
         logging.error(f"{transfer_remainer_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
         await state.set_state(SettingsForm.start)
+
+
+@dp.message_handler(state=SettingsForm.change_limit)
+async def process_sum_from_user_limit(message: types.Message, state: FSMContext) -> None:
+    """
+    Функция, которая работает со всеми сообщениями, в статусе изменения лимита.
+    :param message: Экземпляр сообщения.
+    :param state: Состояние.
+    """
+    try:
+        is_value, value = await helpers.helpers.check_if_string_is_sum(message.text)
+        print(value)
+        if is_value:
+            try:
+                await dp.bot.delete_message(chat_id=message.chat.id, message_id=message.message_id - 1)
+            except Exception as e:
+                logging.debug(e)
+            await message.delete()
+            status = await db_functions.set_limit(str(message.from_user.id), value)
+            if status:
+                await message.answer(f"Сумма: {value} успешно установлена как лимит!", disable_notification=True)
+            else:
+                await message.answer(f"Ну удалось установить {value} как лимит!", disable_notification=True)
+            await SettingsForm.start.set()
+        else:
+            try:
+                await dp.bot.delete_message(chat_id=message.chat.id, message_id=message.message_id - 1)
+            except Exception as e:
+                logging.debug(e)
+            await message.delete()
+            await message.answer(
+                "Ошибка, введите число по примеру или откажитесь от ввода\.\n"
+                "Пример: *30000* или *45000\.20*",
+                parse_mode="MarkdownV2",
+                reply_markup=inline_keybords.refuse_to_input, disable_notification=True)
+    except Exception as e:
+        logging.error(f"{process_sum_from_user_limit.__name__}: {e}. Пользователь с id {message.from_user.id}.")
+        await SettingsForm.start.set()
+
+
+@dp.message_handler(state=SettingsForm.change_goal)
+async def process_sum_from_user_goal(message: types.Message, state: FSMContext) -> None:
+    """
+    Функция, которая работает со всеми сообщениями, в статусе изменения цели.
+    :param message: Экземпляр сообщения.
+    :param state: Состояние.
+    """
+    try:
+        is_value, value = await helpers.helpers.check_if_string_is_sum(message.text)
+        print(value)
+        if is_value:
+            try:
+                await dp.bot.delete_message(chat_id=message.chat.id, message_id=message.message_id - 1)
+            except Exception as e:
+                logging.debug(e)
+            await message.delete()
+            status = await db_functions.set_goal(str(message.from_user.id), value)
+            if status:
+                await message.answer(f"Сумма: {value} успешно установлена как цель!", disable_notification=True)
+            else:
+                await message.answer(f"Ну удалось установить {value} как цель!", disable_notification=True)
+            await SettingsForm.start.set()
+        else:
+            try:
+                await dp.bot.delete_message(chat_id=message.chat.id, message_id=message.message_id - 1)
+            except Exception as e:
+                logging.debug(e)
+            await message.delete()
+            await message.answer(
+                "Ошибка, введите число по примеру или откажитесь от ввода\.\n"
+                "Пример: *30000* или *45000\.20*",
+                parse_mode="MarkdownV2",
+                reply_markup=inline_keybords.refuse_to_input, disable_notification=True)
+    except Exception as e:
+        logging.error(f"{process_sum_from_user_goal.__name__}: {e}. Пользователь с id {message.from_user.id}.")
+        await SettingsForm.start.set()

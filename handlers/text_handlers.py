@@ -17,8 +17,9 @@ from handlers.models.settings_model import SettingsForm
 from texts.ru_RU import messages
 
 
-@dp.message_handler(lambda message: message.text.replace('.', '', 1).isdigit() and float(message.text) > 0,
-                    state=IncomeSpendForm.value)
+@dp.message_handler(
+    lambda message: message.text.replace('.', '', 1).isdigit() or message.text.replace(',', '', 1).isdigit(),
+    state=IncomeSpendForm.value)
 async def process_sum_from_user(message: types.Message, state: FSMContext) -> None:
     """
     Функция, которая работает со всеми сообщениями, содержащими только число.
@@ -28,13 +29,14 @@ async def process_sum_from_user(message: types.Message, state: FSMContext) -> No
     try:
         # Устанавливаем форму в isSpend
         await IncomeSpendForm.next()
-        if float(message.text) > 1000000000000 or float(message.text) < 0.01:
+        sum_str = message.text.replace(',', '.')
+        if float(sum_str) > 10000000000 or float(sum_str) < 0.01:
             await message.answer("Это уже слишком для меня!")
             await IncomeSpendForm.value.set()
             return
-        await state.update_data(value=round(float(message.text), 2))
+        await state.update_data(value=round(float(sum_str), 2))
         await message.answer(
-            f"Сумма: {round(float(message.text), 2)} {await db_functions.get_user_currency(str(message.from_user.id))}",
+            f"Сумма: {round(float(sum_str), 2)} {await db_functions.get_user_currency(str(message.from_user.id))}",
             reply_markup=inline_keybords.income_spend_inline, disable_notification=True)
     except Exception as e:
         if e == "Message is too long":

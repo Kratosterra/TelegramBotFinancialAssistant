@@ -250,3 +250,12 @@ async def generate_currency_choice_keyboard(buttons: list) -> InlineKeyboardMark
         InlineKeyboardButton("❌ Назад", callback_data="settings:delete")
     )
     return keyboard
+
+
+refuse_to_input = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [
+            InlineKeyboardButton(text="❌ Не хочу вводить", callback_data="input::stop"),
+        ],
+    ]
+)

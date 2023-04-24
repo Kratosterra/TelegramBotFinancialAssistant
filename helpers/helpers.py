@@ -60,3 +60,17 @@ def get_dates_of_period(start: datetime, end: datetime, this_moths=False) -> lis
             days = start + timedelta(days=day_i)
             dates.append(days)
     return dates
+
+
+async def check_if_string_is_sum(sum_str: str) -> {bool, float}:
+    """
+    Проверяет являться ли текстовое значение суммой.
+    :param sum_str: Стрококвое представление.
+    :return: Является ли тест суммой.
+    """
+    if sum_str.replace('.', '', 1).isdigit() or sum_str.replace(',', '', 1).isdigit():
+        sum_str = sum_str.replace(',', '.')
+        if float(sum_str) > 10000000000 or float(sum_str) < 0.01:
+            return False, 0.0
+        return True, round(float(sum_str), 2)
+    return False, 0.0
