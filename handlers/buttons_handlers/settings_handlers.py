@@ -107,7 +107,9 @@ async def change_currency_button_handler(call: CallbackQuery, state: FSMContext)
         await state.set_state(SettingsForm.start)
 
 
-@dp.callback_query_handler(text_contains='settings:delete', state=SettingsForm.change_currency)
+@dp.callback_query_handler(text_contains='settings:delete',
+                           state=[SettingsForm.change_currency, SettingsForm.delete_event, SettingsForm.add_event,
+                                  SettingsForm.delete_event_spend, SettingsForm.delete_event_income])
 async def cancel_element_of_settings_handler(call: CallbackQuery, state: FSMContext) -> None:
     """
     Функция, которая отменяет действие в настройках, возвращая к старту.
@@ -237,4 +239,200 @@ async def process_sum_from_user_goal(message: types.Message, state: FSMContext) 
                 reply_markup=inline_keybords.refuse_to_input, disable_notification=True)
     except Exception as e:
         logging.error(f"{process_sum_from_user_goal.__name__}: {e}. Пользователь с id {message.from_user.id}.")
+        await SettingsForm.start.set()
+
+
+@dp.callback_query_handler(text_contains='settings:add:event', state=SettingsForm.start)
+async def add_event_handler(call: CallbackQuery, state: FSMContext) -> None:
+    """
+    Функция, которая отвечает за добавление события.
+    :param call: Запрос от кнопки
+    :param state: Состояние.
+    """
+    try:
+        logging.debug(f'Добавляем событие. Пользователь с id {call.from_user.id}.')
+        await SettingsForm.add_event.set()
+        await call.message.answer(
+            "Выберите\, какой тип события вы хотите добавить\?\n",
+            parse_mode="MarkdownV2",
+            reply_markup=inline_keybords.event_income_spend_inline, disable_notification=True)
+        await call.answer()
+    except Exception as e:
+        logging.error(f"{add_event_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
+        await state.set_state(SettingsForm.start)
+
+
+@dp.callback_query_handler(text_contains='settings:delete:event', state=SettingsForm.start)
+async def delete_event_handler(call: CallbackQuery, state: FSMContext) -> None:
+    """
+    Функция, которая отвечает за удаление события.
+    :param call: Запрос от кнопки
+    :param state: Состояние.
+    """
+    try:
+        logging.debug(f'Удаляем событие. Пользователь с id {call.from_user.id}.')
+        await SettingsForm.delete_event.set()
+        await call.message.answer(
+            "Выберите\, какой тип события вы хотите удалить\?\n",
+            parse_mode="MarkdownV2",
+            reply_markup=inline_keybords.event_income_spend_inline, disable_notification=True)
+        await call.answer()
+    except Exception as e:
+        logging.error(f"{delete_event_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
+        await state.set_state(SettingsForm.start)
+
+
+@dp.callback_query_handler(text_contains='event:income', state=SettingsForm.delete_event)
+async def delete_event_income_handler(call: CallbackQuery, state: FSMContext) -> None:
+    """
+    Функция, которая отвечает за удаление события.
+    :param call: Запрос от кнопки
+    :param state: Состояние.
+    """
+    try:
+        await call.message.delete()
+        logging.debug(f'Удаляем событие доходов. Пользователь с id {call.from_user.id}.')
+        await SettingsForm.delete_event_income.set()
+        data_dict = await db_functions.return_all_events_income(str(call.from_user.id))
+        if len(data_dict.keys()) == 0:
+            page = 0
+        else:
+            if len(data_dict.keys()) % 5 == 0:
+                page = int(len(data_dict.keys()) / 5) - 1
+            else:
+                page = int(len(data_dict.keys()) / 5)
+        if page < 0:
+            page = 0
+        await call.message.answer(
+            "Выберите\, какое событие дохода хотите удалить\?\n",
+            parse_mode="MarkdownV2",
+            reply_markup=await inline_keybords.create_inline_keyboard_events(data_dict, page),
+            disable_notification=True)
+        await call.answer()
+    except Exception as e:
+        logging.error(f"{delete_event_income_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
+        await state.set_state(SettingsForm.start)
+
+
+@dp.callback_query_handler(text_contains='event:spend', state=SettingsForm.delete_event)
+async def delete_event_spend_handler(call: CallbackQuery, state: FSMContext) -> None:
+    """
+    Функция, которая отвечает за удаление события траты.
+    :param call: Запрос от кнопки
+    :param state: Состояние.
+    """
+    try:
+        await call.message.delete()
+        logging.debug(f'Удаляем событие траты. Пользователь с id {call.from_user.id}.')
+        await SettingsForm.delete_event_spend.set()
+        data_dict = await db_functions.return_all_events_spends(str(call.from_user.id))
+        if len(data_dict.keys()) == 0:
+            page = 0
+        else:
+            if len(data_dict.keys()) % 5 == 0:
+                page = int(len(data_dict.keys()) / 5) - 1
+            else:
+                page = int(len(data_dict.keys()) / 5)
+        if page < 0:
+            page = 0
+        await call.message.answer(
+            "Выберите\, какое событие траты хотите удалить\?\n",
+            parse_mode="MarkdownV2",
+            reply_markup=await inline_keybords.create_inline_keyboard_events(data_dict, page),
+            disable_notification=True)
+        await call.answer()
+    except Exception as e:
+        logging.error(f"{delete_event_spend_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
+        await state.set_state(SettingsForm.start)
+
+
+@dp.callback_query_handler(text_contains='event:current_page:',
+                           state=SettingsForm.delete_event_income)
+async def change_page_income_handler(call: CallbackQuery) -> None:
+    """
+    Функция, которая перестраивает меню удаления доходов.
+    :param call: Запрос от кнопки.
+    """
+    try:
+        logging.debug(f"Переходи на другую страницу удаления события дохода. Пользователь с id {call.from_user.id}.")
+        await call.answer()
+        data_dict = await db_functions.return_all_events_income(str(call.from_user.id))
+        page = call.data.split(':')
+        page = int(page[2])
+        keyboard = await inline_keybords.create_inline_keyboard_events(data_dict, page)
+        await call.message.edit_text("Выберите\, какое событие дохода хотите удалить\?\n",
+                                     parse_mode="MarkdownV2", reply_markup=keyboard)
+    except Exception as e:
+        logging.error(f"{change_page_income_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
+        await SettingsForm.start.set()
+
+
+@dp.callback_query_handler(text_contains='event:current_page:',
+                           state=SettingsForm.delete_event_spend)
+async def change_page_spend_handler(call: CallbackQuery) -> None:
+    """
+    Функция, которая перестраивает меню удаления трат.
+    :param call: Запрос от кнопки.
+    """
+    try:
+        logging.debug(f"Переходи на другую страницу удаления трат. Пользователь с id {call.from_user.id}.")
+        await call.answer()
+        data_dict = await db_functions.return_all_events_spends(str(call.from_user.id))
+        page = call.data.split(':')
+        page = int(page[2])
+        keyboard = await inline_keybords.create_inline_keyboard_events(data_dict, page)
+        await call.message.edit_text("Выберите\, какое событие траты хотите удалить\?",
+                                     parse_mode="MarkdownV2", reply_markup=keyboard)
+    except Exception as e:
+        logging.error(f"{change_page_spend_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
+        await SettingsForm.start.set()
+
+
+@dp.callback_query_handler(lambda c: c.data and c.data.startswith('delete:event:'),
+                           state=SettingsForm.delete_event_spend)
+async def delete_event_spend_button_handler(call: CallbackQuery) -> None:
+    """
+    Функция, которая обрабатывает нажатие на кнопку удаления события траты.
+    :param call: Запрос от кнопки.
+    """
+    try:
+        logging.debug(f"Удаляем событие траты. Пользователь с id {call.from_user.id}.")
+        id_to_delete = call.data.split(':')
+        id_to_delete = id_to_delete[2]
+        status = await db_functions.delete_event_spend(str(call.from_user.id), id_to_delete)
+        if status:
+            await call.answer("Событие траты удалено!")
+        else:
+            await call.answer("Не удалось удалить событие траты!")
+        await call.message.delete()
+        await SettingsForm.start.set()
+    except Exception as e:
+        logging.error(f"{delete_event_spend_button_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
+        await call.answer("Произошла непредвиденная ошибка, попробуйте удалить доход снова!")
+        await call.message.delete()
+        await SettingsForm.start.set()
+
+
+@dp.callback_query_handler(lambda c: c.data and c.data.startswith('delete:event:'),
+                           state=SettingsForm.delete_event_income)
+async def delete_event_income_button_handler(call: CallbackQuery) -> None:
+    """
+    Функция, которая обрабатывает нажатие на кнопку удаления события дохода.
+    :param call: Запрос от кнопки.
+    """
+    try:
+        logging.debug(f"Удаляем событие дохода. Пользователь с id {call.from_user.id}.")
+        id_to_delete = call.data.split(':')
+        id_to_delete = id_to_delete[2]
+        status = await db_functions.delete_event_income(str(call.from_user.id), id_to_delete)
+        if status:
+            await call.answer("Событие дохода удалено!")
+        else:
+            await call.answer("Не удалось удалить событие траты!")
+        await call.message.delete()
+        await SettingsForm.start.set()
+    except Exception as e:
+        logging.error(f"{delete_event_income_button_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
+        await call.answer("Произошла непредвиденная ошибка, попробуйте удалить доход снова!")
+        await call.message.delete()
         await SettingsForm.start.set()

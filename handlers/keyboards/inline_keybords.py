@@ -259,3 +259,43 @@ refuse_to_input = InlineKeyboardMarkup(
         ],
     ]
 )
+
+event_income_spend_inline = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [
+            InlineKeyboardButton(text="📈 Событие Доход", callback_data="event:income"),
+            InlineKeyboardButton(text="📉 Событие Трата", callback_data="event:spend"),
+        ],
+        [
+            InlineKeyboardButton(text="❌ Назад", callback_data="settings:delete"),
+        ]
+    ]
+)
+
+
+async def create_inline_keyboard_events(data_dict: dict, current_page: int) -> InlineKeyboardMarkup:
+    """
+    Создаёт клавиатуру для выбора сумм из базы данных для пользователя.
+    :param data_dict: Словарь с событиями.
+    :param current_page: Текущая страница.
+    :return: Клавиатуру
+    """
+    inline_keyboard = InlineKeyboardMarkup(row_width=1)
+    page_size = 5
+    start_index = current_page * page_size
+    end_index = start_index + page_size
+    for item in list(data_dict.keys())[start_index:end_index]:
+        text = ""
+        if 'name_of_income' in data_dict[item].keys():
+            text += f"[{data_dict[item]['name_of_income']}] {data_dict[item]['value_of_income']} [{data_dict[item]['day_of_income']} числа]"
+        else:
+            text += f"[{data_dict[item]['name_of_spending']}] {data_dict[item]['value_of_spending']} [{data_dict[item]['day_of_spending']} числа]"
+        inline_keyboard.add(InlineKeyboardButton(text=str(text), callback_data=f"delete:event:{item}"))
+    pagination_row = []
+    if current_page > 0:
+        pagination_row.append(InlineKeyboardButton(text="⬅️", callback_data=f"event:current_page:{current_page - 1}"))
+    if end_index < len(data_dict):
+        pagination_row.append(InlineKeyboardButton(text="➡️", callback_data=f"event:current_page:{current_page + 1}"))
+    pagination_row.append(InlineKeyboardButton("❌ Назад", callback_data="settings:delete"))
+    inline_keyboard.row(*pagination_row)
+    return inline_keyboard

@@ -1022,3 +1022,59 @@ async def transfer_remained_from_past_months(user_id: str) -> bool:
                       f"пользователя с id: {user_id}.")
         status = False
     return status
+
+
+async def return_all_events_spends(user_id: str) -> dict:
+    """
+    Возвращает все события трат пользователя из db в виде словаря.
+    :param user_id: ID пользователя в Telegram.
+    :return: Словарь трат.
+    """
+    logging.debug(f"Возвращаем все траты пользователя с id: {user_id}.")
+    # Подключаем базу данных определённого пользователя.
+    db: Connection = sqlite3.connect(f'database/data/{user_id}.db')
+    all_spend = {}
+    try:
+        sql: Cursor = db.cursor()
+        for row in sql.execute(f"SELECT * FROM event_spend"):
+            all_spend[row[0]] = {}
+            all_spend[row[0]]["name_of_spending"] = row[0]
+            all_spend[row[0]]["value_of_spending"] = row[1]
+            all_spend[row[0]]["category"] = row[2]
+            all_spend[row[0]]["sub_category"] = row[3]
+            all_spend[row[0]]["day_of_spending"] = row[4]
+    except sqlite3.Error as error:
+        logging.error(
+            f"{return_all_events_spends.__name__}: Ошибка при работе с базой данных: '{error}'. Пользователь с id: '{user_id}'")
+        return {}
+    finally:
+        if db:
+            db.close()
+    return all_spend
+
+
+async def return_all_events_income(user_id: str) -> dict:
+    """
+    Возвращает все события доходов пользователя из db в виде словаря.
+    :param user_id: ID пользователя в Telegram.
+    :return: Словарь трат.
+    """
+    logging.debug(f"Возвращаем все траты пользователя с id: {user_id}.")
+    # Подключаем базу данных определённого пользователя.
+    db: Connection = sqlite3.connect(f'database/data/{user_id}.db')
+    all_income = {}
+    try:
+        sql: Cursor = db.cursor()
+        for row in sql.execute(f"SELECT * FROM event_income"):
+            all_income[row[0]] = {}
+            all_income[row[0]]["name_of_income"] = row[0]
+            all_income[row[0]]["value_of_income"] = row[1]
+            all_income[row[0]]["day_of_income"] = row[2]
+    except sqlite3.Error as error:
+        logging.error(
+            f"{return_all_events_income.__name__}: Ошибка при работе с базой данных: '{error}'. Пользователь с id: '{user_id}'")
+        return {}
+    finally:
+        if db:
+            db.close()
+    return all_income

@@ -15,3 +15,22 @@ class SettingsForm(StatesGroup):
     change_goal = State()
     # Состояние смены остатка.
     transfer_remainer = State()
+    # Удаляем событие
+    delete_event = State()
+    delete_event_spend = State()
+    delete_event_income = State()
+
+    # Добавляем событие
+    add_event = State()
+    # Хранит значение
+    value = State()
+    # Является ли сумма тратой
+    isSpend = State()
+    # Имя суммы
+    name = State()
+    # Категория траты
+    category = State()
+    # Подкатегория траты
+    subcategory = State()
+    # Дата суммы
+    date = State()
