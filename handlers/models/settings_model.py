@@ -24,6 +24,7 @@ class SettingsForm(StatesGroup):
     add_event = State()
     # Хранит значение
     value = State()
+    event_menu = State()
     # Является ли сумма тратой
     isSpend = State()
     # Имя суммы

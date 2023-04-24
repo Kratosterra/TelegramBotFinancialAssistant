@@ -299,3 +299,55 @@ async def create_inline_keyboard_events(data_dict: dict, current_page: int) -> I
     pagination_row.append(InlineKeyboardButton("❌ Назад", callback_data="settings:delete"))
     inline_keyboard.row(*pagination_row)
     return inline_keyboard
+
+
+# Клавиатура, которая появляется, когда пользователь выбирает для суммы статус дохода.
+income_event_inline = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [
+            InlineKeyboardButton(text="📝 Имя события", callback_data="name:event"),
+            InlineKeyboardButton(text="📆 Установить день", callback_data="day:event"),
+        ],
+        [
+            InlineKeyboardButton(text="✅ Добавить событие", callback_data="proceed:event"),
+            InlineKeyboardButton(text="🚫 Отмена", callback_data="settings:delete"),
+        ]
+    ]
+)
+
+# Клавиатура, которая появляется, когда пользователь выбирает для суммы статус траты.
+spend_event_inline = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [
+            InlineKeyboardButton(text="📝 Имя события", callback_data="name:event"),
+            InlineKeyboardButton(text="📆 Установить день", callback_data="day:event"),
+        ],
+        [
+            InlineKeyboardButton(text="📂 Категория", callback_data="category:event"),
+            InlineKeyboardButton(text="🗂️ Подкатегория", callback_data="sub:event"),
+        ],
+        [
+            InlineKeyboardButton(text="✅ Добавить событие", callback_data="proceed:event"),
+            InlineKeyboardButton(text="🚫 Отмена", callback_data="settings:delete"),
+        ]
+    ]
+)
+
+
+async def get_day_choice_keyboard() -> InlineKeyboardMarkup:
+    """
+    Функция, которая генерирует клавиатуру для выбора дня.
+    :return: Разметку клавиатуры.
+    """
+    keyboard = InlineKeyboardMarkup(row_width=7)
+    check = 0
+    for i in range(1, 29):
+        keyboard.insert(InlineKeyboardButton(str(i), callback_data=f"choice:day:{i}"))
+        check += 1
+        if check == 7:
+            keyboard.row()
+            check = 0
+    keyboard.row(
+        InlineKeyboardButton("❌ Отменить", callback_data="input::stop")
+    )
+    return keyboard
