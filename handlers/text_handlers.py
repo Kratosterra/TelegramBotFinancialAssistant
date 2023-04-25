@@ -270,7 +270,27 @@ async def add_name_handler(call: CallbackQuery) -> None:
         logging.debug(f"Изменяем имя. Пользователь с id {call.from_user.id}.")
         await call.answer()
         await IncomeSpendForm.name.set()
-        await call.message.answer("Отправьте имя суммы.", disable_notification=True)
+        await call.message.answer("Отправьте имя суммы.", reply_markup=inline_keybords.refuse_to_input,
+                                  disable_notification=True)
+    except Exception as e:
+        logging.error(f"{add_name_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
+        await IncomeSpendForm.isSpend.set()
+
+
+@dp.callback_query_handler(text_contains='input::stop', state=IncomeSpendForm.name)
+async def refuse_to_input_name_handler(call: CallbackQuery, state: FSMContext) -> None:
+    """
+    Функция, которая отменяет выбор имени суммы.
+    :param state: Текущее состояние.
+    :param call: Запрос от кнопки.
+    """
+    try:
+        logging.debug(f"Отменяем ввод имени! Пользователь с id {call.from_user.id}.")
+        await call.answer("Отменяем ввод!")
+        await call.message.delete()
+        data = await state.get_data()
+        await state.set_state(IncomeSpendForm.isSpend)
+        await state.set_data(data)
     except Exception as e:
         logging.error(f"{add_name_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
         await IncomeSpendForm.isSpend.set()
@@ -291,7 +311,8 @@ async def add_name_message_handler(message: types.Message, state: FSMContext) ->
             logging.debug(e)
         if len(message.text) > 75:
             await message.delete()
-            await message.answer("Имя суммы не должно быть больше 75 символов, повторите ввод, снова отправьте имя)")
+            await message.answer("Имя суммы не должно быть больше 75 символов, повторите ввод, снова отправьте имя)",
+                                 reply_markup=inline_keybords.refuse_to_input)
             await IncomeSpendForm.name.set()
         else:
             await message.delete()
@@ -299,7 +320,8 @@ async def add_name_message_handler(message: types.Message, state: FSMContext) ->
             name = re.sub(r'[^\w\s]', '', name)
             if len(name) < 3:
                 await message.answer(
-                    "Имя суммы не должно быть меньше 3 символов, повторите ввод, снова отправьте имя)")
+                    "Имя суммы не должно быть меньше 3 символов, повторите ввод, снова отправьте имя)",
+                    reply_markup=inline_keybords.refuse_to_input)
                 await IncomeSpendForm.name.set()
                 return
             await state.update_data(name=name)
@@ -513,6 +535,7 @@ async def cancel_subcategory_handler(call: CallbackQuery, state: FSMContext) -> 
     except Exception as e:
         logging.error(f"{cancel_subcategory_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
         await state.set_state(IncomeSpendForm.isSpend)
+
 
 @dp.callback_query_handler(state='*')
 async def ignore_handler(call: CallbackQuery) -> None:

@@ -5,6 +5,7 @@ import sqlite3
 import time
 from sqlite3 import Connection, Cursor
 
+import config.config
 # Получаем доступ к дополнительным функциям
 import helpers.curency_parser
 import helpers.helpers
@@ -83,6 +84,7 @@ async def initialize_user(user_id: str) -> bool:
         sub_categories TEXT
         )""")
         db.commit()
+        await add_init_categories(str(user_id))
     except sqlite3.Error as error:
         logging.error(
             f"{initialize_user.__name__}: Ошибка при работе с базой данных: '{error}'. Пользователь с id: '{user_id}'")
@@ -92,6 +94,30 @@ async def initialize_user(user_id: str) -> bool:
             db.close()
     logging.debug(f"Инициализация пользователя с id: {user_id} закончена.")
     return True
+
+
+async def add_init_categories(user_id: str) -> bool:
+    """
+    Добавляет лист категорий пользователю, если он пуст.
+    :param user_id: ID пользователя в Telegram.
+    :return: Boolean значение удалось ли произвести действие.
+    """
+    logging.debug(f"Пытаемся добавить начальные категории для пользователя с id: {user_id}.")
+    try:
+        categories = config.config.init_dict_of_categories
+        check = (await return_all_categories(user_id)).keys()
+        if len(check) == 0:
+            for category in categories.keys():
+                await add_new_category(user_id, category)
+                for subcategory in categories[category]:
+                    await add_new_subcategory(user_id, category, subcategory)
+            return True
+        return False
+    except Exception as error:
+        logging.error(
+            f"{add_init_categories.__name__}: Ошибка при добавлении init категорий: '{error}'. "
+            f"Пользователь с id: '{user_id}'")
+        return False
 
 
 async def set_limit(user_id: str, limit: float) -> bool:
