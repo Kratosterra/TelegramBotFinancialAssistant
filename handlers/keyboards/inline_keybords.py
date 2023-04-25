@@ -127,8 +127,8 @@ income_spend_category_inline = InlineKeyboardMarkup(
             InlineKeyboardButton(text="Удалить Трату 📉", callback_data="delete:spend:button"),
         ],
         [
-            InlineKeyboardButton(text="🆕 Категория", callback_data="add:category:button"),
-            InlineKeyboardButton(text="🆕 Подкатегория", callback_data="add:subcategory:button"),
+            InlineKeyboardButton(text="📝 Категория", callback_data="add:category:button"),
+            InlineKeyboardButton(text="📝 Подкатегория", callback_data="add:subcategory:button"),
         ],
         [
             InlineKeyboardButton(text="🗑 Категория", callback_data="delete:category:button"),

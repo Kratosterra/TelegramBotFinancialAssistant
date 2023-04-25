@@ -801,6 +801,8 @@ async def count_remained(user_id: str) -> bool:
     sum_of_spends = await return_sum_spend(user_id, None, None, True)
     sum_of_incomes = await return_sum_income(user_id, None, None, True)
     remained = sum_of_incomes - sum_of_spends
+    if remained < 0:
+        remained = 0
     return await set_remained(user_id, remained)
 
 

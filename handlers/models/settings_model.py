@@ -19,11 +19,11 @@ class SettingsForm(StatesGroup):
     delete_event = State()
     delete_event_spend = State()
     delete_event_income = State()
-
     # Добавляем событие
     add_event = State()
     # Хранит значение
     value = State()
+    # Меню добавления события
     event_menu = State()
     # Является ли сумма тратой
     isSpend = State()

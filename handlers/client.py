@@ -57,7 +57,7 @@ async def on_info(message: types.Message) -> None:
     try:
         await db_functions.execute_events(str(message.from_user.id))
         await message.delete()
-        await message.answer(f"*ℹ️ Бюджет*\n\nКраткая информация по состоянию бюджета\.\n\n"
+        await message.answer(f"*ℹ️ Бюджет*"
                              f"{await information.get_budget_of_user(str(message.from_user.id))}",
                              parse_mode="MarkdownV2")
     except Exception as e:
@@ -92,8 +92,10 @@ async def on_incomes_spends(message: types.Message) -> None:
         await db_functions.execute_events(str(message.from_user.id))
         await message.delete()
         await message.answer(
-            "*Траты и доходы\!* 📝\n\nЧтобы добавить сумму, просто оправьте *число* или *фото чека* в чат\!\n"
-            "Пример: *123* или *123\.32*\n\nЭта кнопка \- просто подсказка\.", parse_mode="MarkdownV2")
+            "*Траты и доходы\!* 📝\nЭта кнопка \- просто подсказка\.\n\n"
+            "Чтобы добавить сумму, просто оправьте *число* или *фото чека* в чат\!\n"
+            "Пример: *123* или *123\.32* или *123\,32*\n\n"
+            "_*Hint:* Отправьте документ *\.csv*, чтобы импортировать данные\!_", parse_mode="MarkdownV2")
     except Exception as e:
         logging.error(f"{on_incomes_spends.__name__}: {e}. Пользователь с id {message.from_user.id}.")
 
