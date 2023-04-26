@@ -1106,3 +1106,31 @@ async def return_all_events_income(user_id: str) -> dict:
         if db:
             db.close()
     return all_income
+
+
+async def get_spends_of_user_by_categories(user_id: str, start, end) -> dict:
+    try:
+
+        categories = await return_all_categories(user_id)
+        spends = await return_spend_of_period(user_id, start, end)
+        answer_sum = {}
+        answer_sum['$no_category'] = {"$all": 0.0}
+        for id in spends.keys():
+            if spends[id]['category'] is None or spends[id]['category'] not in categories.keys():
+                answer_sum['$no_category']['$all'] += spends[id]['value_of_spend']
+        for category in categories.keys():
+            answer_sum[category] = {"$no_subcategory": 0.0, "$all": 0.0}
+            for sub in categories[category]:
+                answer_sum[category][sub] = 0.0
+            for id in spends.keys():
+                if spends[id]['category'] == category:
+                    answer_sum[category]["$all"] += spends[id]['value_of_spend']
+                    if spends[id]['sub_category'] in categories[category]:
+                        answer_sum[category][spends[id]['sub_category']] += spends[id]['value_of_spend']
+                    else:
+                        answer_sum[category]['$no_subcategory'] += spends[id]['value_of_spend']
+        return answer_sum
+    except Exception as error:
+        logging.error(
+            f"{return_all_events_income.__name__}: Ошибка при получении сумм по категориям: '{error}'. Пользователь с id: '{user_id}'")
+        return {}
