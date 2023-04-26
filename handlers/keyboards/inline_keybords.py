@@ -1,4 +1,7 @@
+import datetime
+
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from dateutil.relativedelta import relativedelta
 
 # Клавиатура, которая появляется, когда пользователь вводит число.
 income_spend_inline = InlineKeyboardMarkup(
@@ -217,12 +220,10 @@ settings_inline = InlineKeyboardMarkup(
 report_inline = InlineKeyboardMarkup(
     inline_keyboard=[
         [
-            InlineKeyboardButton(text="📄 Краткий отчет", callback_data="report:small"),
+            InlineKeyboardButton(text="📄 Отчет", callback_data="report:small"),
         ],
         [
-            InlineKeyboardButton(text="📊 Подробный отчет", callback_data="report:full"),
-        ],
-        [
+            InlineKeyboardButton(text="📊 Отчет .xlsx", callback_data="report:full"),
             InlineKeyboardButton(text="📤 Экспорт", callback_data="report:export"),
         ],
         [
@@ -350,4 +351,27 @@ async def get_day_choice_keyboard() -> InlineKeyboardMarkup:
     keyboard.row(
         InlineKeyboardButton("❌ Отменить", callback_data="input::stop")
     )
+    return keyboard
+
+
+async def create_report_keyboard_small(current_day: datetime, small=True) -> InlineKeyboardMarkup:
+    now_string = current_day.strftime("%Y-%m-%d")
+    keyboard = InlineKeyboardMarkup(row_width=2)
+    if small:
+        keyboard.insert(InlineKeyboardButton("📊 Показать с подкатегориями", callback_data=f"more:{now_string}"))
+    else:
+        keyboard.insert(InlineKeyboardButton("📊 Показать кратко", callback_data=f"less:{now_string}"))
+    keyboard.row()
+    back = current_day + relativedelta(months=-1)
+    keyboard.insert(InlineKeyboardButton(text="⬅️ Прошлый месяц", callback_data=f"change:{back.strftime('%Y-%m-%d')}"))
+
+    if current_day.year == datetime.date.today().year and current_day.month == datetime.date.today().month:
+        pass
+    else:
+        next = current_day + relativedelta(months=+1)
+        keyboard.insert(
+            InlineKeyboardButton(text="След. месяц ➡️", callback_data=f"change:{next.strftime('%Y-%m-%d')}"))
+    keyboard.row()
+    keyboard.insert(InlineKeyboardButton(text="❌ Назад", callback_data=f"cancel"))
+    keyboard.row()
     return keyboard

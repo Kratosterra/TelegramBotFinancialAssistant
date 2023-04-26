@@ -358,7 +358,8 @@ async def add_date_message_handler(call: CallbackQuery, state: FSMContext) -> No
 
 @dp.callback_query_handler(text_contains='cancel',
                            state=[IncomeSpendForm.isSpend, IncomeSpendForm.value,
-                                  CategoriesAddingForm.start, SettingsForm.start, ReportForm.start])
+                                  CategoriesAddingForm.start, SettingsForm.start, ReportForm.start,
+                                  ReportForm.small_report])
 async def cancel_handler(call: CallbackQuery, state: FSMContext) -> None:
     """
     Позволяет пользователю завершить любое действие. Сбрасывает набор состояний.

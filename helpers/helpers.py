@@ -1,6 +1,8 @@
 import datetime
 from datetime import timedelta
 
+from dateutil.relativedelta import relativedelta
+
 
 def get_dates_with_date(date_of_months: int, start: datetime, end: datetime, need_first_date=True) -> list:
     """
@@ -32,7 +34,8 @@ def get_past_months() -> list:
     :return: Лист из двух datetime.
     """
     today = datetime.date.today()
-    first_day_prev_month = datetime.date(today.year, today.month - 1, 1)
+    first_day_prev_month = datetime.date(today.year, today.month, 1)
+    first_day_prev_month += relativedelta(months=-1)
     last_day_prev_month = first_day_prev_month.replace(day=28) + datetime.timedelta(days=4)
     last_day_prev_month = last_day_prev_month - datetime.timedelta(days=last_day_prev_month.day)
     return [first_day_prev_month, last_day_prev_month]
