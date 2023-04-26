@@ -302,9 +302,9 @@ async def add_category_message_handler(message: types.Message) -> None:
             await message.delete()
             await message.answer("Имя категории не должно быть уже добавлено, повторите ввод, снова отправьте имя.")
             await CategoriesAddingForm.add_category.set()
-        elif len(categories) >= 12:
+        elif len(categories) >= 10:
             await message.delete()
-            await message.answer("На данный момент добавление категорий невозможно, их 12."
+            await message.answer("На данный момент добавление категорий невозможно, их 10."
                                  " Удалите категорию, чтобы добавить другую!")
             await CategoriesAddingForm.start.set()
         elif len(message.text) > 20:
@@ -399,9 +399,9 @@ async def add_category_callback_handler(message: types.Message, state: FSMContex
             await message.delete()
             await message.answer("Имя подкатегории не должно быть уже добавлено, повторите ввод, снова отправьте имя.")
             await CategoriesAddingForm.add_subcategory_by_category.set()
-        elif len(categories[now_category]) >= 12:
+        elif len(categories[now_category]) >= 8:
             await message.delete()
-            await message.answer("На данный момент добавление подкатегорий невозможно, их 12."
+            await message.answer("На данный момент добавление подкатегорий невозможно, их 8."
                                  " Удалите подкатегорию, чтобы добавить другую!")
             await CategoriesAddingForm.start.set()
         elif len(message.text) > 20:

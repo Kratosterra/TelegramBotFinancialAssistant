@@ -22,21 +22,18 @@ def get_past_months_from_date(date: datetime) -> list:
 
 async def get_small_text_report(user_id: str, date: datetime, need_subcategories=False) -> str:
     string = "*Ошибка*"
-    print(date)
     try:
         currency = await db_functions.get_user_currency(user_id)
         start = datetime.date(date.year, date.month, 1)
         end = start.replace(day=28) + datetime.timedelta(days=4)
         end = end - datetime.timedelta(days=end.day)
-        print(f"{start} {end}")
         string = f"{await get_day_string(user_id, currency, start, end)}\n\n" \
                  f"{await better_string(user_id, currency, start, end)}\n" \
                  f"{await get_income_string(user_id, currency, start, end)}\n" \
                  f"{await get_spend_string(user_id, currency, start, end)}\n\n" \
                  f"{await get_categories_report(user_id, currency, start, end, need_subcategories)}"
-        if len(string) > 3800:
-            return string[:3800] + "\.\.\. *Воспользуйтесь отчетом \.xlsx*"
-        print(string)
+        if len(string) > 3900:
+            return "\.\.\. *Воспользуйтесь отчетом \.xlsx*"
     except Exception as e:
         logging.error(f"{get_small_text_report.__name__}: {e}. Пользователь с id {user_id}.")
     return string
@@ -67,9 +64,7 @@ async def get_categories_report(user_id, currency, start, end, need_subcategorie
 
 
 async def better_string(user_id, currency, start, end):
-    print("/better_string")
     list_dates_past = get_past_months_from_date(start)
-    print(list_dates_past)
     now_spends = await db_functions.return_sum_spend(user_id, start, end)
     past_spends = await db_functions.return_sum_spend(user_id, list_dates_past[0], list_dates_past[1])
     now_incomes = await db_functions.return_sum_income(user_id, start, end)
@@ -101,7 +96,6 @@ async def better_string(user_id, currency, start, end):
         incomes_ratio = 1 - incomes_ratio
         incomes_percent = str(round(incomes_ratio * 100, 2)).replace('.', '\.')
         income_string = f"*\- {incomes_percent}\%*"
-    print("/better_string end")
     return f"_По сравнению с прошлым месяцем:_\n📈 Доходы\: {income_string}\n📉 Траты\: {spend_string}\n"
 
 
