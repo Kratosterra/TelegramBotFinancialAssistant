@@ -223,7 +223,7 @@ report_inline = InlineKeyboardMarkup(
             InlineKeyboardButton(text="📄 Отчет", callback_data="report:small"),
         ],
         [
-            InlineKeyboardButton(text="📊 Отчет .xlsx", callback_data="report:full"),
+            InlineKeyboardButton(text="📊 Отчет Excel", callback_data="report:full"),
             InlineKeyboardButton(text="📤 Экспорт", callback_data="report:export"),
         ],
         [
@@ -375,3 +375,17 @@ async def create_report_keyboard_small(current_day: datetime, small=True) -> Inl
     keyboard.insert(InlineKeyboardButton(text="❌ Назад", callback_data=f"cancel"))
     keyboard.row()
     return keyboard
+
+
+big_report_inline = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [
+            InlineKeyboardButton(text="🕛 Дата начала", callback_data="change_date:start"),
+            InlineKeyboardButton(text="🕡 Дата конца", callback_data="change_date:end"),
+        ],
+        [
+            InlineKeyboardButton(text="✅ Получить отчёт", callback_data="proceed"),
+            InlineKeyboardButton(text="🚫 Отмена", callback_data="cancel"),
+        ]
+    ]
+)

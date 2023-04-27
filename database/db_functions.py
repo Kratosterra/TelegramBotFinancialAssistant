@@ -1134,3 +1134,49 @@ async def get_spends_of_user_by_categories(user_id: str, start, end) -> dict:
         logging.error(
             f"{return_all_events_income.__name__}: Ошибка при получении сумм по категориям: '{error}'. Пользователь с id: '{user_id}'")
         return {}
+
+
+async def get_full_spends_of_user_by_categories(user_id: str, start, end) -> dict:
+    try:
+        categories = await return_all_categories(user_id)
+        spends = await return_spend_of_period(user_id, start, end)
+        answer_sum = {}
+        answer_sum['$no_category'] = {"$all": []}
+        for id in spends.keys():
+            if spends[id]['category'] is None or spends[id]['category'] not in categories.keys():
+                answer_sum['$no_category']['$all'].append(spends[id])
+        for category in categories.keys():
+            answer_sum[category] = {"$no_subcategory": [], "$all": []}
+            for sub in categories[category]:
+                answer_sum[category][sub] = []
+            for id in spends.keys():
+                if spends[id]['category'] == category:
+                    answer_sum[category]["$all"].append(spends[id])
+                    if spends[id]['sub_category'] in categories[category]:
+                        answer_sum[category][spends[id]['sub_category']].append(spends[id])
+                    else:
+                        answer_sum[category]['$no_subcategory'].append(spends[id])
+        return answer_sum
+    except Exception as error:
+        logging.error(
+            f"{get_full_spends_of_user_by_categories.__name__}: Ошибка при получении сумм по категориям: '{error}'."
+            f" Пользователь с id: '{user_id}'")
+        return {}
+
+
+async def return_sum_income_ignore_remained(user_id: str, start: datetime, end: datetime, this_moths=False) -> float:
+    """
+    Возвращает сумму доходов за определенный период или текущий месяц игнорируя остатки.
+    :param user_id: ID пользователя в Telegram.
+    :param start: Время начала периода.
+    :param end: Конец временного отрезка.
+    :param this_moths: В этом ли месяце возвращать сумму доходов.
+    :return: Сумма доходов.
+    """
+    logging.debug(f"Возвращаем сумму доходов (без остатков) пользователя с id: {user_id}.")
+    sum_income = 0.00
+    incomes = await return_incomes_of_period(user_id, start, end, this_moths)
+    for i in incomes.keys():
+        if incomes[i]['type_of_income'] != 'remained':
+            sum_income += incomes[i]['value_of_income']
+    return sum_income
