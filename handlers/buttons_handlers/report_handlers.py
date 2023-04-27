@@ -265,7 +265,6 @@ async def proceed_handler(call: CallbackQuery, state: FSMContext) -> None:
         await call.message.delete()
         await state.finish()
         await IncomeSpendForm.value.set()
-        # TODO: Сделать удаление файла по пути)
     except Exception as e:
         logging.error(f"{proceed_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
         await call.answer("При создании отчета произошла ошибка, попробуйте еще раз!")
