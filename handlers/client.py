@@ -6,7 +6,7 @@ from aiogram.dispatcher.filters import Text
 
 from bot import dp
 from database import db_functions
-from handlers.document_handlers import on_import_from_user_handler
+from handlers.document_handlers import on_import_from_user_handler, on_photo_from_user
 from handlers.keyboards import keyboard, inline_keybords
 from handlers.models.categories_deletion_model import CategoriesAddingForm
 from handlers.models.income_spend_model import IncomeSpendForm
@@ -43,7 +43,7 @@ async def on_report(message: types.Message) -> None:
         await ReportForm.start.set()
         await message.answer(
             "*Отчёты и экспорт\!* 📊\n\nЗдесь вам доступна возможность получить *отчёт* по месяцам в чат или"
-            " *полноценный отчет* со всеми наименованиями за выбранный период в формате *\.xls*\.\n"
+            " *полноценный отчет* со всеми наименованиями за выбранный период в формате *\.xlsx*\.\n"
             "Также вы можете произвести экспорт, вам будет прислан файл в формате *\.csv*\!\n", parse_mode="MarkdownV2",
             reply_markup=inline_keybords.report_inline)
     except Exception as e:
@@ -157,18 +157,24 @@ async def on_files(message: types.Message, state: FSMContext) -> None:
         if message.photo:
             await db_functions.execute_events(str(message.from_user.id))
             logging.debug(f"Получил фото. Пользователь с id {message.from_user.id}.")
-            await message.answer("*Сканирование QR\.\.\.*", parse_mode="MarkdownV2")
+            await on_photo_from_user(message, state)
     except Exception as e:
         logging.error(f"{on_files.__name__}: {e}. Пользователь с id {message.from_user.id}.")
 
 
 @dp.message_handler(content_types=["audio", "sticker", "video", "video_note", "voice", "location", "contact"],
                     state=IncomeSpendForm.value)
-async def on_all_not_command_message(message: types.Message) -> None:
+async def on_all_not_command_message(message: types.Message, state: FSMContext) -> None:
     """
     Функция, отвечающая пользователю на непредусмотренный тип входных данных.
+    :param state: Текущее состояние.
     :param message: Экземпляр сообщения.
     """
+    current_state = await state.get_state()
+    if current_state is None:
+        await message.answer(messages.repair_of_functional, parse_mode="MarkdownV2")
+        await IncomeSpendForm.value.set()
+        return
     logging.debug(f"Получил неизвестный тип сообщения. Пользователь с id {message.from_user.id}.")
     await message.answer(text=messages.not_in_bot_message, parse_mode="MarkdownV2")
 

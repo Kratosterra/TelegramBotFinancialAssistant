@@ -7,7 +7,7 @@ from sqlite3 import Connection, Cursor
 
 import config.config
 # Получаем доступ к дополнительным функциям
-import helpers.curency_parser
+import helpers.parser
 import helpers.helpers
 
 
