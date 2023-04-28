@@ -1,6 +1,4 @@
 import logging
-import os
-from pathlib import Path
 
 from aiogram import types
 from aiogram.dispatcher import FSMContext
@@ -8,12 +6,12 @@ from aiogram.dispatcher.filters import Text
 
 from bot import dp
 from database import db_functions
+from handlers.document_handlers import on_import_from_user_handler
 from handlers.keyboards import keyboard, inline_keybords
 from handlers.models.categories_deletion_model import CategoriesAddingForm
 from handlers.models.income_spend_model import IncomeSpendForm
 from handlers.models.report_model import ReportForm
 from handlers.models.settings_model import SettingsForm
-from helpers import import_data
 from helpers import information
 from texts.ru_RU import messages
 
@@ -155,30 +153,7 @@ async def on_files(message: types.Message, state: FSMContext) -> None:
         if message.document:
             await db_functions.execute_events(str(message.from_user.id))
             logging.debug(f"Получил документ {message.document.file_name}. Пользователь с id {message.from_user.id}.")
-            file_id = message.document.file_id
-            file = await dp.bot.get_file(file_id)
-            file_path = file.file_path
-            if Path(file_path).suffix != '.csv':
-                await message.answer("*Такой тип файлов недоступен для импорта\.*\n_Используйте файлы в формате"
-                                     "* \.csv*_", parse_mode="MarkdownV2")
-            else:
-                await message.answer("*Приступаю к импорту\.\.\.*", parse_mode="MarkdownV2")
-                if not os.path.exists('temporary'):
-                    os.makedirs('temporary')
-                if not os.path.exists('temporary\\import'):
-                    os.makedirs('temporary\\import')
-                print()
-                await dp.bot.download_file(file_path, f"temporary\\import\\{str(message.from_user.id)}.csv")
-                num_of_incomes, num_of_spends, status = await import_data.import_table(str(message.from_user.id),
-                                                                                       path=f"temporary\\import\\{str(message.from_user.id)}.csv")
-                if status:
-                    await message.answer(f"*Импорт прошёл успешно*\n\n_Добавлено доходов\:_ {num_of_incomes}\n"
-                                         f"_Добавлено трат\:_ {num_of_spends}\n", parse_mode="MarkdownV2")
-                else:
-                    await message.answer("*При импорте произошли ошибки\, пожалуйста проверьте содержание файла\!*\n"
-                                         "_Содержание файла должно быть в таком же формате\, что и экспорт\._\n"
-                                         "_Воспользуйтесь экспортом из бота, чтобы прояснить для себя формат\._",
-                                         parse_mode="MarkdownV2")
+            await on_import_from_user_handler(message, state)
         if message.photo:
             await db_functions.execute_events(str(message.from_user.id))
             logging.debug(f"Получил фото. Пользователь с id {message.from_user.id}.")
