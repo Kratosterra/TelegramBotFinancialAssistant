@@ -31,7 +31,7 @@ async def start(message: types.Message) -> None:
         logging.error(f"{start.__name__}: {e}. Пользователь с id {message.from_user.id}.")
 
 
-@dp.message_handler(Text(equals='📊 Отчёты и экспорт'), state=IncomeSpendForm.value)
+@dp.message_handler(Text(equals=['📊 Отчёты и экспорт', '/report']), state=IncomeSpendForm.value)
 async def on_report(message: types.Message) -> None:
     """
     Функция, ответственная за обработку запроса на предоставление отчета или экспорта.
@@ -50,7 +50,7 @@ async def on_report(message: types.Message) -> None:
         logging.error(f"{on_report.__name__}: {e}. Пользователь с id {message.from_user.id}.")
 
 
-@dp.message_handler(Text(equals='ℹ️ Бюджет'), state=IncomeSpendForm.value)
+@dp.message_handler(Text(equals=['ℹ️ Бюджет', '/budget']), state=IncomeSpendForm.value)
 async def on_info(message: types.Message) -> None:
     """
     Функция, ответственная за обработку запроса на предоставление информации по текущему состоянию бюджета.
@@ -66,7 +66,7 @@ async def on_info(message: types.Message) -> None:
         logging.error(f"{on_info.__name__}: {e}. Пользователь с id {message.from_user.id}.")
 
 
-@dp.message_handler(Text(equals='🛠 Категории'), state=IncomeSpendForm.value)
+@dp.message_handler(Text(equals=['🛠 Категории', '/categories']), state=IncomeSpendForm.value)
 async def on_incomes_spends(message: types.Message) -> None:
     """
     Функция, ответственная за обработку запроса на работу с тратами и доходами.
@@ -84,7 +84,7 @@ async def on_incomes_spends(message: types.Message) -> None:
         logging.error(f"{on_incomes_spends.__name__}: {e}. Пользователь с id {message.from_user.id}.")
 
 
-@dp.message_handler(Text(equals='📝 Траты и доходы'), state=IncomeSpendForm.value)
+@dp.message_handler(Text(equals=['📝 Траты и доходы', '/sums']), state=IncomeSpendForm.value)
 async def on_incomes_spends(message: types.Message) -> None:
     """
     Функция, ответственная за обработку запроса на работу с тратами и доходами.
@@ -102,7 +102,7 @@ async def on_incomes_spends(message: types.Message) -> None:
         logging.error(f"{on_incomes_spends.__name__}: {e}. Пользователь с id {message.from_user.id}.")
 
 
-@dp.message_handler(Text(equals='⚙️ Настройки'), state=IncomeSpendForm.value)
+@dp.message_handler(Text(equals=['⚙️ Настройки', '/settings']), state=IncomeSpendForm.value)
 async def on_settings(message: types.Message) -> None:
     """
     Функция, ответственная за обработку запроса на открытие настроек.
@@ -121,7 +121,7 @@ async def on_settings(message: types.Message) -> None:
         logging.error(f"{on_settings.__name__}: {e}. Пользователь с id {message.from_user.id}.")
 
 
-@dp.message_handler(Text(equals='🆘 Помощь'), state=IncomeSpendForm.value)
+@dp.message_handler(Text(equals=['🆘 Помощь', '/help']), state=IncomeSpendForm.value)
 async def on_help(message: types.Message) -> None:
     """
     Функция, ответственная за обработку запроса на предоставление инструкции по работе.

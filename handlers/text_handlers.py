@@ -407,22 +407,27 @@ async def on_all_not_command_message(message: types.Message, state: FSMContext) 
     try:
         logging.debug(f"Получил текст. Пользователь с id {message.from_user.id}.")
         check = message.text
-        if check.replace('.', '', 1).isdigit():
+        current_state = await state.get_state()
+        if current_state != IncomeSpendForm.value.state and current_state is not None:
+            await message.delete()
+            await message.answer(messages.error, parse_mode="MarkdownV2",
+                                 reply_markup=inline_keybords.clear_inline)
+        if check.replace('.', '', 1).isdigit() and current_state is not None:
             if float(message.text) > 0:
-                current_state = await state.get_state()
-                if current_state is not None:
-                    await message.delete()
-                    # await message.answer(messages.error, parse_mode="MarkdownV2")
+                pass
             else:
                 await message.delete()
-                # await message.answer(messages.hint_message, parse_mode="MarkdownV2", )
-        else:
+                await message.answer(messages.hint_message, parse_mode="MarkdownV2",
+                                     reply_markup=inline_keybords.clear_inline)
+        elif current_state is not None and current_state == IncomeSpendForm.value.state:
             await message.delete()
-            # await message.answer(messages.hint_message, parse_mode="MarkdownV2")
+            await message.answer(messages.hint_message, parse_mode="MarkdownV2",
+                                 reply_markup=inline_keybords.clear_inline)
         # Возобновляем форму, если бот завершался после того, как пользователь ввел /start.
         current_state = await state.get_state()
         if current_state is None:
-            await message.answer(messages.repair_of_functional, parse_mode="MarkdownV2")
+            await message.answer(messages.repair_of_functional, parse_mode="MarkdownV2",
+                                 reply_markup=inline_keybords.clear_inline)
             await IncomeSpendForm.value.set()
     except Exception as e:
         if e == "Message is too long":
@@ -566,4 +571,3 @@ async def ignore_handler(call: CallbackQuery) -> None:
     except Exception as e:
         logging.error(f"{ignore_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
         await IncomeSpendForm.value.set()
-
