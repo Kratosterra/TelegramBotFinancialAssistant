@@ -1,5 +1,6 @@
 import datetime
 import logging
+import os
 
 from aiogram.dispatcher import FSMContext
 from aiogram.types import CallbackQuery
@@ -8,7 +9,7 @@ from bot import dp
 from handlers.keyboards import inline_keybords
 from handlers.models.income_spend_model import IncomeSpendForm
 from handlers.models.report_model import ReportForm
-from helpers import report, full_report
+from helpers import report, full_report, export
 
 
 @dp.callback_query_handler(text_contains='report:small', state=[ReportForm.start])
@@ -265,7 +266,39 @@ async def proceed_handler(call: CallbackQuery, state: FSMContext) -> None:
         await call.message.delete()
         await state.finish()
         await IncomeSpendForm.value.set()
+        try:
+            os.remove(path_to_file)
+        except Exception:
+            pass
     except Exception as e:
         logging.error(f"{proceed_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
         await call.answer("При создании отчета произошла ошибка, попробуйте еще раз!")
         await IncomeSpendForm.value.set()
+
+
+@dp.callback_query_handler(text_contains='report:export', state=[ReportForm.start])
+async def export_handler(call: CallbackQuery, state: FSMContext) -> None:
+    """
+    Функция, которая отменяет действие в настройках, возвращая к старту.
+    :param call: Запрос от кнопки.
+    :param state: Состояние.
+    """
+    try:
+        await call.message.delete()
+        logging.debug(f'Получаем файл для экспорта. Пользователь с id {call.from_user.id}.')
+        await ReportForm.export.set()
+        path_to_file = await export.get_export_table(str(call.from_user.id))
+        await call.message.answer_document(open(path_to_file, 'rb'),
+                                           caption=f"📤 *Экспорт*\n\n_Данные за все время в формате \.csv_",
+                                           parse_mode="MarkdownV2")
+        await state.set_state(IncomeSpendForm.value)
+        try:
+            os.remove(path_to_file)
+        except Exception:
+            pass
+    except Exception as e:
+        logging.error(f"{export_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
+        await call.message.answer(
+            f"📤 *Экспорт*\n\n_Произошла ошибка_",
+            parse_mode="MarkdownV2")
+        await state.set_state(IncomeSpendForm.value)
