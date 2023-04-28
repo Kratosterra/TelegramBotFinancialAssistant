@@ -187,9 +187,11 @@ async def process_sum_from_user_limit(message: types.Message, state: FSMContext)
             await message.delete()
             status = await db_functions.set_limit(str(message.from_user.id), value)
             if status:
-                await message.answer(f"Сумма: {value} успешно установлена как лимит!", disable_notification=True)
+                await message.answer(f"Сумма: {value} успешно установлена как лимит!", disable_notification=True,
+                                     reply_markup=inline_keybords.clear_inline)
             else:
-                await message.answer(f"Ну удалось установить {value} как лимит!", disable_notification=True)
+                await message.answer(f"Не удалось установить {value} как лимит!", disable_notification=True,
+                                     reply_markup=inline_keybords.clear_inline)
             await SettingsForm.start.set()
         else:
             try:
@@ -225,9 +227,11 @@ async def process_sum_from_user_goal(message: types.Message, state: FSMContext) 
             await message.delete()
             status = await db_functions.set_goal(str(message.from_user.id), value)
             if status:
-                await message.answer(f"Сумма: {value} успешно установлена как цель!", disable_notification=True)
+                await message.answer(f"Сумма: {value} успешно установлена как цель!", disable_notification=True,
+                                     reply_markup=inline_keybords.clear_inline)
             else:
-                await message.answer(f"Ну удалось установить {value} как цель!", disable_notification=True)
+                await message.answer(f"Не удалось установить {value} как цель!", disable_notification=True,
+                                     reply_markup=inline_keybords.clear_inline)
             await SettingsForm.start.set()
         else:
             try:
@@ -590,7 +594,8 @@ async def add_name_message_handler(message: types.Message, state: FSMContext) ->
                 await SettingsForm.name.set()
                 return
             await state.update_data(name=name)
-            await message.answer(f"Имя: {name} установлено!", disable_notification=True)
+            await message.answer(f"Имя: {name} установлено!", disable_notification=True,
+                                 reply_markup=inline_keybords.clear_inline)
             await SettingsForm.event_menu.set()
     except Exception as e:
         logging.error(f"{add_name_message_handler.__name__}: {e}. Пользователь с id {message.from_user.id}.")

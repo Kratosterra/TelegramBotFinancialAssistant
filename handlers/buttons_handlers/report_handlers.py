@@ -141,7 +141,8 @@ async def date_message_handler(call: CallbackQuery, state: FSMContext) -> None:
     except Exception as e:
         logging.error(f"{date_message_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
         await call.message.delete()
-        await call.message.answer("Произошла непредвиденная ошибка, попробуйте создать отчет снова!")
+        await call.message.answer("Произошла непредвиденная ошибка, попробуйте создать отчет снова!",
+                                  reply_markup=inline_keybords.clear_inline)
         await IncomeSpendForm.value.set()
 
 
@@ -303,5 +304,5 @@ async def export_handler(call: CallbackQuery, state: FSMContext) -> None:
         logging.error(f"{export_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
         await call.message.answer(
             f"📤 *Экспорт*\n\n_Произошла ошибка_",
-            parse_mode="MarkdownV2")
+            parse_mode="MarkdownV2", reply_markup=inline_keybords.clear_inline)
         await state.set_state(IncomeSpendForm.value)

@@ -150,7 +150,8 @@ async def delete_spend_button_handler(call: CallbackQuery) -> None:
     except Exception as e:
         logging.error(f"{delete_spend_button_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
         await call.message.delete()
-        await call.message.answer("Произошла непредвиденная ошибка, попробуйте удалить трату снова!")
+        await call.message.answer("Произошла непредвиденная ошибка, попробуйте удалить трату снова!",
+                                  reply_markup=inline_keybords.clear_inline)
         await CategoriesAddingForm.start.set()
 
 
@@ -307,7 +308,8 @@ async def add_category_message_handler(message: types.Message) -> None:
         elif len(categories) >= 10:
             await message.delete()
             await message.answer("Отмена. На данный момент добавление категорий невозможно, их 10."
-                                 " Удалите категорию, чтобы добавить другую!")
+                                 " Удалите категорию, чтобы добавить другую!",
+                                 reply_markup=inline_keybords.clear_inline)
             await CategoriesAddingForm.start.set()
         elif len(message.text) > 20:
             await message.delete()
@@ -326,12 +328,14 @@ async def add_category_message_handler(message: types.Message) -> None:
                 await CategoriesAddingForm.add_category.set()
                 return
             await db_functions.add_new_category(str(message.from_user.id), category)
-            await message.answer(f"Категория: {category} добавлена!", disable_notification=True)
+            await message.answer(f"Категория: {category} добавлена!", disable_notification=True,
+                                 reply_markup=inline_keybords.clear_inline)
             await CategoriesAddingForm.start.set()
     except Exception as e:
         logging.error(f"{add_category_message_handler.__name__}: {e}. Пользователь с id {message.from_user.id}.")
         await message.delete()
-        await message.answer("Произошла непредвиденная ошибка, попробуйте добавить категорию снова!")
+        await message.answer("Произошла непредвиденная ошибка, попробуйте добавить категорию снова!",
+                             reply_markup=inline_keybords.clear_inline)
         await CategoriesAddingForm.start.set()
 
 
@@ -380,7 +384,8 @@ async def add_subcategory_message_handler(call: CallbackQuery, state: FSMContext
     except Exception as e:
         logging.error(f"{add_subcategory_message_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
         await call.message.delete()
-        await call.message.answer("Произошла непредвиденная ошибка, попробуйте добавить подкатегорию снова!")
+        await call.message.answer("Произошла непредвиденная ошибка, попробуйте добавить подкатегорию снова!",
+                                  reply_markup=inline_keybords.clear_inline)
         await CategoriesAddingForm.start.set()
 
 
@@ -407,7 +412,8 @@ async def add_category_callback_handler(message: types.Message, state: FSMContex
         elif len(categories[now_category]) >= 8:
             await message.delete()
             await message.answer("Отмена. На данный момент добавление подкатегорий невозможно, их 8."
-                                 " Удалите подкатегорию, чтобы добавить другую!")
+                                 " Удалите подкатегорию, чтобы добавить другую!",
+                                 reply_markup=inline_keybords.clear_inline)
             await CategoriesAddingForm.start.set()
         elif len(message.text) > 20:
             await message.delete()
@@ -427,7 +433,7 @@ async def add_category_callback_handler(message: types.Message, state: FSMContex
                 return
             await db_functions.add_new_subcategory(str(message.from_user.id), str(now_category), category)
             await message.answer(f"Подкатегория: {category} в категорию {now_category} добавлена!",
-                                 disable_notification=True)
+                                 disable_notification=True, reply_markup=inline_keybords.clear_inline)
             await CategoriesAddingForm.start.set()
     except Exception as e:
         logging.error(f"{add_category_callback_handler.__name__}: {e}. Пользователь с id {message.from_user.id}.")

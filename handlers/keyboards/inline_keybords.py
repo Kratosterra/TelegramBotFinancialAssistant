@@ -273,6 +273,13 @@ event_income_spend_inline = InlineKeyboardMarkup(
     ]
 )
 
+clear_inline = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [
+            InlineKeyboardButton(text="👁️ Скрыть сообщение", callback_data="message:clear"),
+        ]
+    ]
+)
 
 async def create_inline_keyboard_events(data_dict: dict, current_page: int) -> InlineKeyboardMarkup:
     """

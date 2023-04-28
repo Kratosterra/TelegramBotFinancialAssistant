@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 
 from bot import dp
+from handlers.keyboards import inline_keybords
 from handlers.models.income_spend_model import IncomeSpendForm
 from helpers import import_data
 
@@ -14,7 +15,7 @@ async def on_import_from_user_handler(message, state):
         file_path = file.file_path
         if Path(file_path).suffix != '.csv':
             await message.answer("*Такой тип файлов недоступен для импорта\.*\n_Используйте файлы в формате"
-                                 "* \.csv*_", parse_mode="MarkdownV2")
+                                 "* \.csv*_", parse_mode="MarkdownV2", reply_markup=inline_keybords.clear_inline)
         else:
             await message.answer("*Приступаю к импорту\.\.\.*", parse_mode="MarkdownV2")
             if not os.path.exists('temporary'):
@@ -26,12 +27,13 @@ async def on_import_from_user_handler(message, state):
                                                                                    path=f"temporary\\import\\{str(message.from_user.id)}.csv")
             if status:
                 await message.answer(f"*Импорт прошёл успешно*\n\n_Добавлено доходов\:_ {num_of_incomes}\n"
-                                     f"_Добавлено трат\:_ {num_of_spends}\n", parse_mode="MarkdownV2")
+                                     f"_Добавлено трат\:_ {num_of_spends}\n", parse_mode="MarkdownV2",
+                                     reply_markup=inline_keybords.clear_inline)
             else:
                 await message.answer("*При импорте произошли ошибки\, пожалуйста проверьте содержание файла\!*\n"
                                      "_Содержание файла должно быть в таком же формате\, что и экспорт\._\n"
                                      "_Воспользуйтесь экспортом из бота, чтобы прояснить для себя формат\._",
-                                     parse_mode="MarkdownV2")
+                                     parse_mode="MarkdownV2", reply_markup=inline_keybords.clear_inline)
             await state.set_state(IncomeSpendForm.value)
             try:
                 os.remove(f"temporary\\import\\{str(message.from_user.id)}.csv")

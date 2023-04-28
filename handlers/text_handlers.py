@@ -31,7 +31,7 @@ async def process_sum_from_user(message: types.Message, state: FSMContext) -> No
         await IncomeSpendForm.next()
         sum_str = message.text.replace(',', '.')
         if float(sum_str) > 10000000000 or float(sum_str) < 0.01:
-            await message.answer("Это уже слишком для меня!")
+            await message.answer("Это уже слишком для меня!", reply_markup=inline_keybords.clear_inline)
             await IncomeSpendForm.value.set()
             return
         await state.update_data(value=round(float(sum_str), 2))
@@ -40,7 +40,7 @@ async def process_sum_from_user(message: types.Message, state: FSMContext) -> No
             reply_markup=inline_keybords.income_spend_inline, disable_notification=True)
     except Exception as e:
         if e == "Message is too long":
-            await message.answer("Это слишком большое сообщение для меня!")
+            await message.answer("Это слишком большое сообщение для меня!", reply_markup=inline_keybords.clear_inline)
         else:
             logging.error(f"{process_sum_from_user.__name__}: {e}. Пользователь с id {message.from_user.id}.")
         await IncomeSpendForm.value.set()
@@ -154,7 +154,7 @@ async def send_sub_category_picker(call: CallbackQuery, state: FSMContext) -> No
                                           reply_markup=keyboard, disable_notification=True)
             else:
                 keyboard = await inline_keybords.generate_subcategory_keyboard([])
-                await call.message.answer("Сначала добавьте подкатегории в свою категорию:",
+                await call.message.answer("Сначала добавьте подкатегории в свою категорию.",
                                           reply_markup=keyboard, disable_notification=True)
         await call.answer()
         await IncomeSpendForm.subcategory.set()
@@ -248,10 +248,11 @@ async def proceed_handler(call: CallbackQuery, state: FSMContext) -> None:
         await call.message.delete()
         if st:
             await call.answer(f"Добавление завершено успешно!")
-            await call.message.answer(f"Добавление завершено успешно!")
+            await call.message.answer(f"Добавление завершено успешно!", reply_markup=inline_keybords.clear_inline)
         else:
             await call.answer(f"Добавление не завершено, повторите попытку!")
-            await call.message.answer(f"Добавление не завершено, повторите попытку!")
+            await call.message.answer(f"Добавление не завершено, повторите попытку!",
+                                      reply_markup=inline_keybords.clear_inline)
         await state.finish()
         await IncomeSpendForm.value.set()
     except Exception as e:
@@ -325,7 +326,8 @@ async def add_name_message_handler(message: types.Message, state: FSMContext) ->
                 await IncomeSpendForm.name.set()
                 return
             await state.update_data(name=name)
-            await message.answer(f"Имя: {name} установлено!", disable_notification=True)
+            await message.answer(f"Имя: {name} установлено!", disable_notification=True,
+                                 reply_markup=inline_keybords.clear_inline)
             await IncomeSpendForm.isSpend.set()
     except Exception as e:
         logging.error(f"{add_name_message_handler.__name__}: {e}. Пользователь с id {message.from_user.id}.")
@@ -424,7 +426,7 @@ async def on_all_not_command_message(message: types.Message, state: FSMContext) 
             await IncomeSpendForm.value.set()
     except Exception as e:
         if e == "Message is too long":
-            await message.answer("Это слишком большое сообщение для меня!")
+            await message.answer("Это слишком большое сообщение для меня!", reply_markup=inline_keybords.clear_inline)
         else:
             logging.error(f"{on_all_not_command_message.__name__}: {e}. Пользователь с id {message.from_user.id}.")
         await IncomeSpendForm.value.set()
@@ -448,7 +450,6 @@ async def process_previous_month_callback(call: CallbackQuery) -> None:
         await dp.bot.edit_message_reply_markup(call.message.chat.id,
                                                call.message.message_id,
                                                reply_markup=keyboard)
-
         await dp.bot.answer_callback_query(call.id)
         await call.answer()
     except Exception as e:
@@ -538,6 +539,21 @@ async def cancel_subcategory_handler(call: CallbackQuery, state: FSMContext) -> 
         await state.set_state(IncomeSpendForm.isSpend)
 
 
+@dp.callback_query_handler(state='*', text_contains="message:clear")
+async def clear_handler(call: CallbackQuery) -> None:
+    """
+    Функция, которая игнорирует нажатие, на неактивные кнопки.
+    :param call: Запрос от кнопки.
+    """
+    try:
+        logging.debug(f'Скрываем сообщение. Пользователь с id {call.from_user.id}.')
+        await call.message.delete()
+        await call.answer("Скрыто!")
+    except Exception as e:
+        logging.error(f"{clear_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
+        await IncomeSpendForm.value.set()
+
+
 @dp.callback_query_handler(state='*')
 async def ignore_handler(call: CallbackQuery) -> None:
     """
@@ -550,3 +566,4 @@ async def ignore_handler(call: CallbackQuery) -> None:
     except Exception as e:
         logging.error(f"{ignore_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
         await IncomeSpendForm.value.set()
+
