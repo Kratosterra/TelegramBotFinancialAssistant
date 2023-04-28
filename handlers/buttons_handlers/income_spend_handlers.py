@@ -28,7 +28,8 @@ async def add_category_handler(call: CallbackQuery) -> None:
             string += f"{num}) {key}\n"
             num += 1
         await call.message.answer(f"Отправьте имя новой категории. Вот список текущих:\n{string}",
-                                  disable_notification=True)
+                                  disable_notification=True,
+                                  reply_markup=inline_keybords.refuse_to_input)
     except Exception as e:
         logging.error(f"{add_category_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
         await CategoriesAddingForm.start.set()
@@ -300,17 +301,19 @@ async def add_category_message_handler(message: types.Message) -> None:
         categories = await db_functions.return_all_categories(str(message.from_user.id))
         if str(message.text) in categories.keys():
             await message.delete()
-            await message.answer("Имя категории не должно быть уже добавлено, повторите ввод, снова отправьте имя.")
+            await message.answer("Имя категории не должно быть уже добавлено, повторите ввод, снова отправьте имя.",
+                                 reply_markup=inline_keybords.refuse_to_input)
             await CategoriesAddingForm.add_category.set()
         elif len(categories) >= 10:
             await message.delete()
-            await message.answer("На данный момент добавление категорий невозможно, их 10."
+            await message.answer("Отмена. На данный момент добавление категорий невозможно, их 10."
                                  " Удалите категорию, чтобы добавить другую!")
             await CategoriesAddingForm.start.set()
         elif len(message.text) > 20:
             await message.delete()
             await message.answer(
-                "Имя категории не должно быть больше 20 символов, повторите ввод, снова отправьте имя.")
+                "Имя категории не должно быть больше 20 символов, повторите ввод, снова отправьте имя.",
+                reply_markup=inline_keybords.refuse_to_input)
             await CategoriesAddingForm.add_category.set()
         else:
             await message.delete()
@@ -318,7 +321,8 @@ async def add_category_message_handler(message: types.Message) -> None:
             category = re.sub(r'[^\w\s]', '', category)
             if len(category) < 3:
                 await message.answer(
-                    "Имя категории не должно быть меньше 3 символов, повторите ввод, снова отправьте имя)")
+                    "Имя категории не должно быть меньше 3 символов, повторите ввод, снова отправьте имя)",
+                    reply_markup=inline_keybords.refuse_to_input)
                 await CategoriesAddingForm.add_category.set()
                 return
             await db_functions.add_new_category(str(message.from_user.id), category)
@@ -372,7 +376,7 @@ async def add_subcategory_message_handler(call: CallbackQuery, state: FSMContext
             string += f"{num}) {key}\n"
             num += 1
         await call.message.answer(f"Отправьте имя новой подкатегории. Вот список текущих:\n{string}",
-                                  disable_notification=True)
+                                  disable_notification=True, reply_markup=inline_keybords.refuse_to_input)
     except Exception as e:
         logging.error(f"{add_subcategory_message_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
         await call.message.delete()
@@ -397,17 +401,19 @@ async def add_category_callback_handler(message: types.Message, state: FSMContex
         categories = await db_functions.return_all_categories(str(message.from_user.id))
         if str(message.text) in categories[now_category]:
             await message.delete()
-            await message.answer("Имя подкатегории не должно быть уже добавлено, повторите ввод, снова отправьте имя.")
+            await message.answer("Имя подкатегории не должно быть уже добавлено, повторите ввод, снова отправьте имя.",
+                                 reply_markup=inline_keybords.refuse_to_input)
             await CategoriesAddingForm.add_subcategory_by_category.set()
         elif len(categories[now_category]) >= 8:
             await message.delete()
-            await message.answer("На данный момент добавление подкатегорий невозможно, их 8."
+            await message.answer("Отмена. На данный момент добавление подкатегорий невозможно, их 8."
                                  " Удалите подкатегорию, чтобы добавить другую!")
             await CategoriesAddingForm.start.set()
         elif len(message.text) > 20:
             await message.delete()
             await message.answer(
-                "Имя подкатегории не должно быть больше 20 символов, повторите ввод, снова отправьте имя.")
+                "Имя подкатегории не должно быть больше 20 символов, повторите ввод, снова отправьте имя.",
+                reply_markup=inline_keybords.refuse_to_input)
             await CategoriesAddingForm.add_subcategory_by_category.set()
         else:
             await message.delete()
@@ -415,7 +421,8 @@ async def add_category_callback_handler(message: types.Message, state: FSMContex
             category = re.sub(r'[^\w\s]', '', category)
             if len(category) < 3:
                 await message.answer(
-                    "Имя подкатегории не должно быть меньше 3 символов, повторите ввод, снова отправьте имя)")
+                    "Имя подкатегории не должно быть меньше 3 символов, повторите ввод, снова отправьте имя)",
+                    reply_markup=inline_keybords.refuse_to_input)
                 await CategoriesAddingForm.add_subcategory_by_category.set()
                 return
             await db_functions.add_new_subcategory(str(message.from_user.id), str(now_category), category)
@@ -540,4 +547,24 @@ async def cancel_category_handler(call: CallbackQuery, state: FSMContext) -> Non
         await state.set_data(data)
     except Exception as e:
         logging.error(f"{cancel_category_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
+        await state.set_state(CategoriesAddingForm.start)
+
+
+@dp.callback_query_handler(text_contains='input::stop', state=[CategoriesAddingForm.add_category,
+                                                               CategoriesAddingForm.add_subcategory_by_category])
+async def cancel_input_handler(call: CallbackQuery, state: FSMContext) -> None:
+    """
+    Функция, которая отменяет действие в настройках, возвращая к старту.
+    :param call: Запрос от кнопки.
+    :param state: Состояние.
+    """
+    try:
+        logging.debug(f'Отменяем действие в категориях. Пользователь с id {call.from_user.id}.')
+        await call.answer("Отменяем ввод!")
+        await call.message.delete()
+        data = await state.get_data()
+        await state.set_state(CategoriesAddingForm.start)
+        await state.set_data(data)
+    except Exception as e:
+        logging.error(f"{cancel_input_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
         await state.set_state(CategoriesAddingForm.start)

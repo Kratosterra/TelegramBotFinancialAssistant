@@ -25,9 +25,10 @@ async def small_report_handler(call: CallbackQuery, state: FSMContext) -> None:
         await ReportForm.small_report.set()
         now = datetime.date.today()
         await call.message.answer(
-            f"📄 *Краткий отчет*\n{await report.get_small_text_report(str(call.from_user.id), datetime.date.today())}",
+            f"📄 *Отчёт*\n{await report.get_small_text_report(str(call.from_user.id), datetime.date.today())}",
             parse_mode="MarkdownV2",
             reply_markup=await inline_keybords.create_report_keyboard_small(now))
+        await call.answer()
     except Exception as e:
         logging.error(f"{small_report_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
         await state.set_state(IncomeSpendForm.value)
@@ -111,6 +112,7 @@ async def big_report_handler(call: CallbackQuery, state: FSMContext) -> None:
             f"📊 *Отчет Excel*\n\n_Выберете период с помощью кнопок и подтвердите создание_",
             parse_mode="MarkdownV2",
             reply_markup=inline_keybords.big_report_inline)
+        await call.answer()
     except Exception as e:
         logging.error(f"{small_report_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
         await state.set_state(IncomeSpendForm.value)
@@ -291,6 +293,7 @@ async def export_handler(call: CallbackQuery, state: FSMContext) -> None:
         await call.message.answer_document(open(path_to_file, 'rb'),
                                            caption=f"📤 *Экспорт*\n\n_Данные за все время в формате \.csv_",
                                            parse_mode="MarkdownV2")
+        await call.answer()
         await state.set_state(IncomeSpendForm.value)
         try:
             os.remove(path_to_file)
