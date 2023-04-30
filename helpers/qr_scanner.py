@@ -2,7 +2,12 @@ import cv2
 from pyzbar import pyzbar
 
 
-async def get_qr_codes(filename):
+async def get_qr_codes(filename: str) -> list:
+    """
+    Функция, которая возвращает список данных из QR кода с фото.
+    :param filename: Имя файла фото в строковом представлении.
+    :return: Список данных из QR кода.
+    """
     all_data = []
     img = cv2.imread(filename)
     qrcodes = pyzbar.decode(img)

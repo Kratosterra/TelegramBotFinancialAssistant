@@ -6,9 +6,9 @@ import time
 from sqlite3 import Connection, Cursor
 
 import config.config
+import helpers.helpers
 # Получаем доступ к дополнительным функциям
 import helpers.parser
-import helpers.helpers
 
 
 async def initialize_user(user_id: str) -> bool:
@@ -378,11 +378,13 @@ async def add_new_subcategory(user_id: str, category: str, subcategory: str) -> 
         db.commit()
     except sqlite3.Error as error:
         logging.error(
-            f"{add_new_subcategory.__name__}: Ошибка при работе с базой данных: '{error}'. Пользователь с id: '{user_id}'")
+            f"{add_new_subcategory.__name__}: Ошибка при работе с базой данных: '{error}'."
+            f" Пользователь с id: '{user_id}'")
         return False
     except Exception as e:
         logging.error(
-            f"{add_new_subcategory.__name__}: Ошибка при работе с базой данных: '{e}'. Не на стороне базы. Пользователь с id: '{user_id}'")
+            f"{add_new_subcategory.__name__}: Ошибка при работе с базой данных: '{e}'. Не на стороне базы."
+            f" Пользователь с id: '{user_id}'")
         return False
     finally:
         if db:
@@ -406,7 +408,8 @@ async def delete_event_spend(user_id: str, name_of_spending: str) -> bool:
         db.commit()
     except sqlite3.Error as error:
         logging.error(
-            f"{delete_event_spend.__name__}: Ошибка при работе с базой данных: '{error}'. Пользователь с id: '{user_id}'")
+            f"{delete_event_spend.__name__}: Ошибка при работе с базой данных: '{error}'."
+            f" Пользователь с id: '{user_id}'")
         return False
     finally:
         if db:
@@ -430,7 +433,8 @@ async def delete_event_income(user_id: str, name_of_income: str) -> bool:
         db.commit()
     except sqlite3.Error as error:
         logging.error(
-            f"{delete_event_income.__name__}: Ошибка при работе с базой данных: '{error}'. Пользователь с id: '{user_id}'")
+            f"{delete_event_income.__name__}: Ошибка при работе с базой данных: '{error}'."
+            f" Пользователь с id: '{user_id}'")
         return False
     finally:
         if db:
@@ -491,11 +495,13 @@ async def delete_subcategory(user_id: str, category: str, subcategory: str) -> b
         db.commit()
     except sqlite3.Error as error:
         logging.error(
-            f"{delete_subcategory.__name__}: Ошибка при работе с базой данных: '{error}'. Пользователь с id: '{user_id}'")
+            f"{delete_subcategory.__name__}: Ошибка при работе с базой данных: '{error}'."
+            f" Пользователь с id: '{user_id}'")
         return False
     except Exception as e:
         logging.error(
-            f"{delete_subcategory.__name__}: Ошибка при работе с базой данных: '{e}'. Не на стороне базы. Пользователь с id: '{user_id}'")
+            f"{delete_subcategory.__name__}: Ошибка при работе с базой данных: '{e}'. Не на стороне базы."
+            f" Пользователь с id: '{user_id}'")
         return False
     finally:
         if db:
@@ -572,7 +578,8 @@ async def execute_events(user_id: str) -> bool:
         return False
     except Exception as e:
         logging.error(
-            f"{execute_events.__name__}: Ошибка при работе с базой данных: '{e}'. Не на стороне базы. Пользователь с id: '{user_id}'")
+            f"{execute_events.__name__}: Ошибка при работе с базой данных: '{e}'. Не на стороне базы."
+            f" Пользователь с id: '{user_id}'")
         return False
     finally:
         if db:
@@ -603,7 +610,8 @@ async def return_all_spends(user_id: str) -> dict:
             all_spend[row[0]]["date_of_spend"] = row[6]
     except sqlite3.Error as error:
         logging.error(
-            f"{return_all_spends.__name__}: Ошибка при работе с базой данных: '{error}'. Пользователь с id: '{user_id}'")
+            f"{return_all_spends.__name__}: Ошибка при работе с базой данных: '{error}'."
+            f" Пользователь с id: '{user_id}'")
         return {}
     finally:
         if db:
@@ -632,7 +640,8 @@ async def return_all_incomes(user_id: str) -> dict:
             all_incomes[row[0]]["date_of_income"] = row[4]
     except sqlite3.Error as error:
         logging.error(
-            f"{return_all_incomes.__name__}: Ошибка при работе с базой данных: '{error}'. Пользователь с id: '{user_id}'")
+            f"{return_all_incomes.__name__}: Ошибка при работе с базой данных: '{error}'."
+            f" Пользователь с id: '{user_id}'")
         return {}
     finally:
         if db:
@@ -736,7 +745,8 @@ async def return_all_categories(user_id: str) -> dict:
             all_categories[row[0]] = sub_categories_list
     except sqlite3.Error as error:
         logging.error(
-            f"{return_all_categories.__name__}: Ошибка при работе с базой данных: '{error}'. Пользователь с id: '{user_id}'")
+            f"{return_all_categories.__name__}: Ошибка при работе с базой данных: '{error}'."
+            f" Пользователь с id: '{user_id}'")
         return {}
     finally:
         if db:
@@ -760,7 +770,8 @@ async def delete_spend_by_id(user_id: str, spend_id: int) -> bool:
         db.commit()
     except sqlite3.Error as error:
         logging.error(
-            f"{delete_spend_by_id.__name__}: Ошибка при работе с базой данных: '{error}'. Пользователь с id: '{user_id}'")
+            f"{delete_spend_by_id.__name__}: Ошибка при работе с базой данных: '{error}'."
+            f" Пользователь с id: '{user_id}'")
         return False
     finally:
         if db:
@@ -784,7 +795,8 @@ async def delete_income_by_id(user_id: str, income_id: int) -> bool:
         db.commit()
     except sqlite3.Error as error:
         logging.error(
-            f"{delete_income_by_id.__name__}: Ошибка при работе с базой данных: '{error}'. Пользователь с id: '{user_id}'")
+            f"{delete_income_by_id.__name__}: Ошибка при работе с базой данных: '{error}'."
+            f" Пользователь с id: '{user_id}'")
         return False
     finally:
         if db:
@@ -927,7 +939,8 @@ async def get_user_currency(user_id: str) -> str:
         currency = sql.fetchone()[4]
     except sqlite3.Error as error:
         logging.error(
-            f"{get_user_currency.__name__}: Ошибка при работе с базой данных: '{error}'. Пользователь с id: '{user_id}'")
+            f"{get_user_currency.__name__}: Ошибка при работе с базой данных: '{error}'."
+            f" Пользователь с id: '{user_id}'")
         return currency
     finally:
         if db:
@@ -951,7 +964,8 @@ async def _set_user_currency(user_id: str, new_currency: str) -> bool:
         db.commit()
     except sqlite3.Error as error:
         logging.error(
-            f"{_set_user_currency.__name__}: Ошибка при работе с базой данных: '{error}'. Пользователь с id: '{user_id}'")
+            f"{_set_user_currency.__name__}: Ошибка при работе с базой данных: '{error}'."
+            f" Пользователь с id: '{user_id}'")
         return False
     finally:
         if db:
@@ -989,7 +1003,8 @@ async def _recount_all_values_of_user(user_id: str, exchange_rate: float) -> boo
         db.commit()
     except sqlite3.Error as error:
         logging.error(
-            f"{_recount_all_values_of_user.__name__}: Ошибка при работе с базой данных: '{error}'. Пользователь с id: '{user_id}'")
+            f"{_recount_all_values_of_user.__name__}: Ошибка при работе с базой данных: '{error}'."
+            f" Пользователь с id: '{user_id}'")
         return False
     finally:
         if db:
@@ -1073,7 +1088,8 @@ async def return_all_events_spends(user_id: str) -> dict:
             all_spend[row[0]]["day_of_spending"] = row[4]
     except sqlite3.Error as error:
         logging.error(
-            f"{return_all_events_spends.__name__}: Ошибка при работе с базой данных: '{error}'. Пользователь с id: '{user_id}'")
+            f"{return_all_events_spends.__name__}: Ошибка при работе с базой данных: '{error}'."
+            f" Пользователь с id: '{user_id}'")
         return {}
     finally:
         if db:
@@ -1100,7 +1116,8 @@ async def return_all_events_income(user_id: str) -> dict:
             all_income[row[0]]["day_of_income"] = row[2]
     except sqlite3.Error as error:
         logging.error(
-            f"{return_all_events_income.__name__}: Ошибка при работе с базой данных: '{error}'. Пользователь с id: '{user_id}'")
+            f"{return_all_events_income.__name__}: Ошибка при работе с базой данных: '{error}'."
+            f" Пользователь с id: '{user_id}'")
         return {}
     finally:
         if db:
@@ -1108,54 +1125,66 @@ async def return_all_events_income(user_id: str) -> dict:
     return all_income
 
 
-async def get_spends_of_user_by_categories(user_id: str, start, end) -> dict:
+async def get_spends_of_user_by_categories(user_id: str, start: datetime, end: datetime) -> dict:
+    """
+    Функция, которая возвращает траты пользователя по категориям в виде словаря сумм.
+    :param user_id: ID пользователя в Telegram.
+    :param start: Начало периода.
+    :param end: Конец периода.
+    :return: Словарь с суммами трат по всем категориям.
+    """
     try:
-
         categories = await return_all_categories(user_id)
         spends = await return_spend_of_period(user_id, start, end)
-        answer_sum = {}
-        answer_sum['$no_category'] = {"$all": 0.0}
-        for id in spends.keys():
-            if spends[id]['category'] is None or spends[id]['category'] not in categories.keys():
-                answer_sum['$no_category']['$all'] += spends[id]['value_of_spend']
+        answer_sum = {'$no_category': {"$all": 0.0}}
+        for id_spend in spends.keys():
+            if spends[id_spend]['category'] is None or spends[id_spend]['category'] not in categories.keys():
+                answer_sum['$no_category']['$all'] += spends[id_spend]['value_of_spend']
         for category in categories.keys():
             answer_sum[category] = {"$no_subcategory": 0.0, "$all": 0.0}
             for sub in categories[category]:
                 answer_sum[category][sub] = 0.0
-            for id in spends.keys():
-                if spends[id]['category'] == category:
-                    answer_sum[category]["$all"] += spends[id]['value_of_spend']
-                    if spends[id]['sub_category'] in categories[category]:
-                        answer_sum[category][spends[id]['sub_category']] += spends[id]['value_of_spend']
+            for id_spend in spends.keys():
+                if spends[id_spend]['category'] == category:
+                    answer_sum[category]["$all"] += spends[id_spend]['value_of_spend']
+                    if spends[id_spend]['sub_category'] in categories[category]:
+                        answer_sum[category][spends[id_spend]['sub_category']] += spends[id_spend]['value_of_spend']
                     else:
-                        answer_sum[category]['$no_subcategory'] += spends[id]['value_of_spend']
+                        answer_sum[category]['$no_subcategory'] += spends[id_spend]['value_of_spend']
         return answer_sum
     except Exception as error:
         logging.error(
-            f"{return_all_events_income.__name__}: Ошибка при получении сумм по категориям: '{error}'. Пользователь с id: '{user_id}'")
+            f"{return_all_events_income.__name__}: Ошибка при получении сумм по категориям: '{error}'."
+            f" Пользователь с id: '{user_id}'")
         return {}
 
 
-async def get_full_spends_of_user_by_categories(user_id: str, start, end) -> dict:
+async def get_full_spends_of_user_by_categories(user_id: str, start: datetime, end: datetime) -> dict:
+    """
+    Функция, которая возвращает траты пользователя по категориям в виде словаря с тратами.
+    :param user_id: ID пользователя в Telegram.
+    :param start: Начало периода.
+    :param end: Конец периода.
+    :return: Словарь со списками трат по всем категориям.
+    """
     try:
         categories = await return_all_categories(user_id)
         spends = await return_spend_of_period(user_id, start, end)
-        answer_sum = {}
-        answer_sum['$no_category'] = {"$all": []}
-        for id in spends.keys():
-            if spends[id]['category'] is None or spends[id]['category'] not in categories.keys():
-                answer_sum['$no_category']['$all'].append(spends[id])
+        answer_sum = {'$no_category': {"$all": []}}
+        for id_spend in spends.keys():
+            if spends[id_spend]['category'] is None or spends[id_spend]['category'] not in categories.keys():
+                answer_sum['$no_category']['$all'].append(spends[id_spend])
         for category in categories.keys():
             answer_sum[category] = {"$no_subcategory": [], "$all": []}
             for sub in categories[category]:
                 answer_sum[category][sub] = []
-            for id in spends.keys():
-                if spends[id]['category'] == category:
-                    answer_sum[category]["$all"].append(spends[id])
-                    if spends[id]['sub_category'] in categories[category]:
-                        answer_sum[category][spends[id]['sub_category']].append(spends[id])
+            for id_spend in spends.keys():
+                if spends[id_spend]['category'] == category:
+                    answer_sum[category]["$all"].append(spends[id_spend])
+                    if spends[id_spend]['sub_category'] in categories[category]:
+                        answer_sum[category][spends[id_spend]['sub_category']].append(spends[id_spend])
                     else:
-                        answer_sum[category]['$no_subcategory'].append(spends[id])
+                        answer_sum[category]['$no_subcategory'].append(spends[id_spend])
         return answer_sum
     except Exception as error:
         logging.error(

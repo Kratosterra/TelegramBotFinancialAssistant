@@ -6,7 +6,7 @@ from aiogram.dispatcher.filters import Text
 
 from bot import dp
 from database import db_functions
-from handlers.data_handlers.document_handlers import on_import_from_user_handler, on_photo_from_user
+from handlers.data_handlers.document_handlers import on_import_from_user_handler, on_photo_from_user_handler
 from handlers.keyboards import keyboard, inline_keybords
 from handlers.models.categories_deletion_model import CategoriesAddingForm
 from handlers.models.income_spend_model import IncomeSpendForm
@@ -20,6 +20,7 @@ from texts.ru_RU import messages
 async def start(message: types.Message) -> None:
     """
     Функция, исполняющаяся при и пользовании команды /start.
+    :type message: Message
     :param message: Экземпляр сообщения
     """
     try:
@@ -35,6 +36,7 @@ async def start(message: types.Message) -> None:
 async def on_report(message: types.Message) -> None:
     """
     Функция, ответственная за обработку запроса на предоставление отчета или экспорта.
+    :type message: Message
     :param message: Экземпляр сообщения
     """
     try:
@@ -54,6 +56,7 @@ async def on_report(message: types.Message) -> None:
 async def on_info(message: types.Message) -> None:
     """
     Функция, ответственная за обработку запроса на предоставление информации по текущему состоянию бюджета.
+    :type message: Message
     :param message: Экземпляр сообщения.
     """
     try:
@@ -70,6 +73,7 @@ async def on_info(message: types.Message) -> None:
 async def on_incomes_spends(message: types.Message) -> None:
     """
     Функция, ответственная за обработку запроса на работу с тратами и доходами.
+    :type message: Message
     :param message: Экземпляр сообщения.
     """
     try:
@@ -88,6 +92,7 @@ async def on_incomes_spends(message: types.Message) -> None:
 async def on_incomes_spends(message: types.Message) -> None:
     """
     Функция, ответственная за обработку запроса на работу с тратами и доходами.
+    :type message: Message
     :param message: Экземпляр сообщения.
     """
     try:
@@ -106,6 +111,7 @@ async def on_incomes_spends(message: types.Message) -> None:
 async def on_settings(message: types.Message) -> None:
     """
     Функция, ответственная за обработку запроса на открытие настроек.
+    :type message: Message
     :param message: Экземпляр сообщения.
     """
     try:
@@ -113,7 +119,8 @@ async def on_settings(message: types.Message) -> None:
         await message.delete()
         await SettingsForm.start.set()
         await message.answer(
-            "*Настройки\!* ⚙️\n\nТут вы сможете *сменить валюту*, перенести *остаток по средствам* с прошлого месяца\.\n"
+            "*Настройки\!* ⚙️\n\nТут вы сможете *сменить валюту*, перенести *остаток по средствам*"
+            " с прошлого месяца\.\n"
             "Добавить или удалить *события* трат или доходов\, которые повторяются каждый месяц в заданный день\.\n"
             "Настроить *цель* по сэкономленным средствам и *лимит* по тратам за месяц\.\n", parse_mode="MarkdownV2",
             reply_markup=inline_keybords.settings_inline)
@@ -125,6 +132,7 @@ async def on_settings(message: types.Message) -> None:
 async def on_help(message: types.Message) -> None:
     """
     Функция, ответственная за обработку запроса на предоставление инструкции по работе.
+    :type message: Message
     :param message: Экземпляр сообщения.
     """
     try:
@@ -139,6 +147,9 @@ async def on_help(message: types.Message) -> None:
 async def on_files(message: types.Message, state: FSMContext) -> None:
     """
     Функция, отвечающая за запуск действий с фото для сканирования и обработкой документов.
+    :type state: FSMContext
+    :type message: Message
+    :param state: Состояние.
     :param message: Экземпляр сообщения.
     """
     try:
@@ -157,7 +168,7 @@ async def on_files(message: types.Message, state: FSMContext) -> None:
         if message.photo:
             await db_functions.execute_events(str(message.from_user.id))
             logging.debug(f"Получил фото. Пользователь с id {message.from_user.id}.")
-            await on_photo_from_user(message, state)
+            await on_photo_from_user_handler(message, state)
     except Exception as e:
         logging.error(f"{on_files.__name__}: {e}. Пользователь с id {message.from_user.id}.")
 
@@ -167,6 +178,8 @@ async def on_files(message: types.Message, state: FSMContext) -> None:
 async def on_all_not_command_message(message: types.Message, state: FSMContext) -> None:
     """
     Функция, отвечающая пользователю на непредусмотренный тип входных данных.
+    :type state: FSMContext
+    :type message: Message
     :param state: Текущее состояние.
     :param message: Экземпляр сообщения.
     """

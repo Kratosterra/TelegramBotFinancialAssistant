@@ -20,9 +20,12 @@ from texts.ru_RU import messages
 @dp.message_handler(
     lambda message: message.text.replace('.', '', 1).isdigit() or message.text.replace(',', '', 1).isdigit(),
     state=IncomeSpendForm.value)
-async def process_sum_from_user(message: types.Message, state: FSMContext) -> None:
+async def process_sum_from_user_message_handler(message: types.Message, state: FSMContext) -> None:
     """
     Функция, которая работает со всеми сообщениями, содержащими только число.
+     Если число подходит, оправляет пользователю меню с выбором типа суммы.
+    :type state: FSMContext
+    :type message: Message
     :param message: Экземпляр сообщения.
     :param state: Состояние.
     """
@@ -31,7 +34,8 @@ async def process_sum_from_user(message: types.Message, state: FSMContext) -> No
         await IncomeSpendForm.next()
         sum_str = message.text.replace(',', '.')
         if float(sum_str) > 10000000000 or float(sum_str) < 0.01:
-            await message.answer("Это уже слишком для меня!", reply_markup=inline_keybords.clear_inline)
+            await message.answer("Это уже слишком для меня!\nЧисло либо очень большое, либо очень маленькое!",
+                                 reply_markup=inline_keybords.clear_inline)
             await IncomeSpendForm.value.set()
             return
         await state.update_data(value=round(float(sum_str), 2))
@@ -42,12 +46,13 @@ async def process_sum_from_user(message: types.Message, state: FSMContext) -> No
         if e == "Message is too long":
             await message.answer("Это слишком большое сообщение для меня!", reply_markup=inline_keybords.clear_inline)
         else:
-            logging.error(f"{process_sum_from_user.__name__}: {e}. Пользователь с id {message.from_user.id}.")
+            logging.error(
+                f"{process_sum_from_user_message_handler.__name__}: {e}. Пользователь с id {message.from_user.id}.")
         await IncomeSpendForm.value.set()
 
 
 @dp.callback_query_handler(text_contains='income:income_spend_sum', state='*')
-async def activate_adding_income(call: CallbackQuery, state: FSMContext) -> None:
+async def add_income_type_button_handler(call: CallbackQuery, state: FSMContext) -> None:
     """
     Функция, которая отсылает сообщение с кнопками для настройки дохода.
     :param call: Вызов от кнопки.
@@ -63,12 +68,12 @@ async def activate_adding_income(call: CallbackQuery, state: FSMContext) -> None
             f"Доход {(await state.get_data())['value']} {await db_functions.get_user_currency(str(call.from_user.id))}",
             reply_markup=inline_keybords.income_sum_inline, disable_notification=True)
     except Exception as e:
-        logging.error(f"{activate_adding_income.__name__}: {e}. Пользователь с id {call.from_user.id}.")
+        logging.error(f"{add_income_type_button_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
         await IncomeSpendForm.value.set()
 
 
 @dp.callback_query_handler(text_contains='spend:income_spend_sum', state='*')
-async def activate_adding_spend(call: CallbackQuery, state: FSMContext) -> None:
+async def add_spend_type_button_handler(call: CallbackQuery, state: FSMContext) -> None:
     """
     Функция, которая отсылает сообщение с кнопками для настройки траты.
     :param call: Вызов от кнопки.
@@ -81,21 +86,23 @@ async def activate_adding_spend(call: CallbackQuery, state: FSMContext) -> None:
         # Устанавливаем тип суммы.
         await state.update_data(isSpend=True)
         await call.message.answer(
-            f"Добавляем трату {(await state.get_data())['value']} {await db_functions.get_user_currency(str(call.from_user.id))}",
+            f"Добавляем трату {(await state.get_data())['value']} "
+            f"{await db_functions.get_user_currency(str(call.from_user.id))}",
             reply_markup=inline_keybords.spend_sum_inline, disable_notification=True)
     except Exception as e:
-        logging.error(f"{activate_adding_spend.__name__}: {e}. Пользователь с id {call.from_user.id}.")
+        logging.error(f"{add_spend_type_button_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
         await IncomeSpendForm.value.set()
 
 
 @dp.callback_query_handler(text_contains='change_date:sum', state=IncomeSpendForm.isSpend)
-async def send_date_picker(call: CallbackQuery) -> None:
+async def add_date_button_handler(call: CallbackQuery) -> None:
     """
     Функция, которая отвечает за обработку нажатия на кнопку изменения даты суммы, отправляя сообщение с календарём.
+    :type call: CallbackQuery
     :param call: Вызов от кнопки.
     """
     try:
-        logging.debug(f"Отправляем календарь для выбора даты. Пользователь с id {call.from_user.id}.")
+        logging.debug(f"Отправляем календарь для выбора даты суммы. Пользователь с id {call.from_user.id}.")
         year = datetime.now().year
         month = datetime.now().month
         calendar_keyboard = await inline_keybords.generate_calendar(year, month)
@@ -103,14 +110,15 @@ async def send_date_picker(call: CallbackQuery) -> None:
         await call.message.answer("Выберите дату:", reply_markup=calendar_keyboard, disable_notification=True)
         await call.answer()
     except Exception as e:
-        logging.error(f"{send_date_picker.__name__}: {e}. Пользователь с id {call.from_user.id}.")
+        logging.error(f"{add_date_button_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
         await IncomeSpendForm.isSpend.set()
 
 
 @dp.callback_query_handler(text_contains='category:spend_sum', state=IncomeSpendForm.isSpend)
-async def send_category_picker(call: CallbackQuery) -> None:
+async def add_category_button_handler(call: CallbackQuery) -> None:
     """
     Функция, которая отвечает за обработку нажатия на кнопку категории, отсылая сообщение с кнопками для выбора.
+    :type call: CallbackQuery
     :param call: Вызов от кнопки.
     """
     try:
@@ -126,14 +134,16 @@ async def send_category_picker(call: CallbackQuery) -> None:
             await call.message.answer("Выберите категорию:", reply_markup=keyboard, disable_notification=True)
         await call.answer()
     except Exception as e:
-        logging.error(f"{send_category_picker.__name__}: {e}. Пользователь с id {call.from_user.id}.")
+        logging.error(f"{add_category_button_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
         await IncomeSpendForm.isSpend.set()
 
 
 @dp.callback_query_handler(text_contains='sub:spend_sum', state=IncomeSpendForm.isSpend)
-async def send_sub_category_picker(call: CallbackQuery, state: FSMContext) -> None:
+async def add_subcategory_button_handler(call: CallbackQuery, state: FSMContext) -> None:
     """
     Функция, которая отвечает за обработку нажатия на кнопку подкатегории, отсылая сообщение для выбора.
+    :type state: FSMContext
+    :type call: CallbackQuery
     :param call: Вызов от кнопки.
     :param state: Состояние.
     """
@@ -159,14 +169,16 @@ async def send_sub_category_picker(call: CallbackQuery, state: FSMContext) -> No
         await call.answer()
         await IncomeSpendForm.subcategory.set()
     except Exception as e:
-        logging.error(f"{send_sub_category_picker.__name__}: {e}. Пользователь с id {call.from_user.id}.")
+        logging.error(f"{add_subcategory_button_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
         await IncomeSpendForm.isSpend.set()
 
 
 @dp.callback_query_handler(lambda c: c.data and c.data.startswith('choice:category:'), state=IncomeSpendForm.category)
-async def add_category_message_handler(call: CallbackQuery, state: FSMContext) -> None:
+async def add_category_sum_button_handler(call: CallbackQuery, state: FSMContext) -> None:
     """
     Функция, которая реагирует на выбор категории кнопкой, добавляя информацию в состояние.
+    :type state: FSMContext
+    :type call: CallbackQuery
     :param call: Вызов от кнопки.
     :param state: Состояние.
     """
@@ -179,7 +191,7 @@ async def add_category_message_handler(call: CallbackQuery, state: FSMContext) -
         await call.answer(f"Категория: {category} установлена! Подкатегория сброшена!")
         await IncomeSpendForm.isSpend.set()
     except Exception as e:
-        logging.error(f"{add_category_message_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
+        logging.error(f"{add_category_sum_button_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
         await call.answer("Произошла непредвиденная ошибка, попробуйте присвоить категорию снова!")
         await call.message.delete()
         await IncomeSpendForm.isSpend.set()
@@ -187,9 +199,11 @@ async def add_category_message_handler(call: CallbackQuery, state: FSMContext) -
 
 @dp.callback_query_handler(lambda c: c.data and c.data.startswith('choice:subcategory:'),
                            state=IncomeSpendForm.subcategory)
-async def add_subcategory_message_handler(call: CallbackQuery, state: FSMContext) -> None:
+async def add_subcategory_sum_button_handler(call: CallbackQuery, state: FSMContext) -> None:
     """
     Функция, которая реагирует на выбор подкатегории кнопкой, добавляя информацию в состояние.
+    :type state: FSMContext
+    :type call: CallbackQuery
     :param call: Вызов от кнопки.
     :param state: Состояние.
     """
@@ -201,16 +215,18 @@ async def add_subcategory_message_handler(call: CallbackQuery, state: FSMContext
         await call.answer(f"Подкатегория: {category} установлена!")
         await IncomeSpendForm.isSpend.set()
     except Exception as e:
-        logging.error(f"{add_subcategory_message_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
+        logging.error(f"{add_subcategory_sum_button_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
         await call.message.delete()
         await call.answer("Произошла непредвиденная ошибка, попробуйте присвоить категорию снова!")
         await IncomeSpendForm.isSpend.set()
 
 
 @dp.callback_query_handler(text_contains='proceed:sum', state=IncomeSpendForm.isSpend)
-async def proceed_handler(call: CallbackQuery, state: FSMContext) -> None:
+async def proceed_button_handler(call: CallbackQuery, state: FSMContext) -> None:
     """
-    Функция, которая рагирует на кнопку добавления суммы как траты или дохода. Закрывает набор состояний.
+    Функция, которая реагирует на кнопку добавления суммы как траты или дохода. Закрывает набор состояний.
+    :type state: FSMContext
+    :type call: CallbackQuery
     :param call: Вызов от кнопки.
     :param state: Состояние.
     """
@@ -256,25 +272,26 @@ async def proceed_handler(call: CallbackQuery, state: FSMContext) -> None:
         await state.finish()
         await IncomeSpendForm.value.set()
     except Exception as e:
-        logging.error(f"{proceed_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
+        logging.error(f"{proceed_button_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
         await call.answer("При добавлении произошла ошибка, попробуйте еще раз! Нажав 'Отмена'")
         await IncomeSpendForm.value.set()
 
 
 @dp.callback_query_handler(text_contains='name:sum', state=IncomeSpendForm.isSpend)
-async def add_name_handler(call: CallbackQuery) -> None:
+async def add_name_button_handler(call: CallbackQuery) -> None:
     """
     Функция, которая обрабатывает нажатие на кнопку имени, отправляя запрос на предоставление имени суммы.
+    :type call: CallbackQuery
     :param call: Запрос от кнопки.
     """
     try:
-        logging.debug(f"Изменяем имя. Пользователь с id {call.from_user.id}.")
+        logging.debug(f"Изменяем имя суммы. Пользователь с id {call.from_user.id}.")
         await call.answer()
         await IncomeSpendForm.name.set()
         await call.message.answer("Отправьте имя суммы.", reply_markup=inline_keybords.refuse_to_input,
                                   disable_notification=True)
     except Exception as e:
-        logging.error(f"{add_name_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
+        logging.error(f"{add_name_button_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
         await IncomeSpendForm.isSpend.set()
 
 
@@ -282,6 +299,8 @@ async def add_name_handler(call: CallbackQuery) -> None:
 async def refuse_to_input_name_handler(call: CallbackQuery, state: FSMContext) -> None:
     """
     Функция, которая отменяет выбор имени суммы.
+    :type state: FSMContext
+    :type call: CallbackQuery
     :param state: Текущее состояние.
     :param call: Запрос от кнопки.
     """
@@ -293,7 +312,7 @@ async def refuse_to_input_name_handler(call: CallbackQuery, state: FSMContext) -
         await state.set_state(IncomeSpendForm.isSpend)
         await state.set_data(data)
     except Exception as e:
-        logging.error(f"{add_name_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
+        logging.error(f"{refuse_to_input_name_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
         await IncomeSpendForm.isSpend.set()
 
 
@@ -301,6 +320,8 @@ async def refuse_to_input_name_handler(call: CallbackQuery, state: FSMContext) -
 async def add_name_message_handler(message: types.Message, state: FSMContext) -> None:
     """
     Функция, которая реагирует на отправление любого сообщения, после нажатия на кнопку добавления имени.
+    :type state: FSMContext
+    :type message: Message
     :param message: Экземпляр сообщения.
     :param state: Состояние.
     """
@@ -337,9 +358,11 @@ async def add_name_message_handler(message: types.Message, state: FSMContext) ->
 
 
 @dp.callback_query_handler(lambda c: c.data and c.data.startswith('date:'), state=IncomeSpendForm.date)
-async def add_date_message_handler(call: CallbackQuery, state: FSMContext) -> None:
+async def add_date_num_button_handler(call: CallbackQuery, state: FSMContext) -> None:
     """
     Функция, которая реагирует на нажатие кнопки в календаре.
+    :type state: FSMContext
+    :type call: CallbackQuery
     :param call: Запрос от кнопки.
     :param state: Состояние.
     """
@@ -352,7 +375,7 @@ async def add_date_message_handler(call: CallbackQuery, state: FSMContext) -> No
         await call.message.delete()
         await IncomeSpendForm.isSpend.set()
     except Exception as e:
-        logging.error(f"{add_date_message_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
+        logging.error(f"{add_date_num_button_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
         await call.message.delete()
         await call.message.answer("Произошла непредвиденная ошибка, попробуйте изменить дату снова!")
         await IncomeSpendForm.isSpend.set()
@@ -362,9 +385,11 @@ async def add_date_message_handler(call: CallbackQuery, state: FSMContext) -> No
                            state=[IncomeSpendForm.isSpend, IncomeSpendForm.value,
                                   CategoriesAddingForm.start, SettingsForm.start, ReportForm.start,
                                   ReportForm.small_report, ReportForm.big_report])
-async def cancel_handler(call: CallbackQuery, state: FSMContext) -> None:
+async def cancel_button_handler(call: CallbackQuery, state: FSMContext) -> None:
     """
     Позволяет пользователю завершить любое действие. Сбрасывает набор состояний.
+    :type state: FSMContext
+    :type call: CallbackQuery
     :param call: Запрос от кнопки.
     :param state: Состояние.
     """
@@ -379,28 +404,32 @@ async def cancel_handler(call: CallbackQuery, state: FSMContext) -> None:
         await call.message.delete()
         await IncomeSpendForm.value.set()
     except Exception as e:
-        logging.error(f"{cancel_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
+        logging.error(f"{cancel_button_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
         await IncomeSpendForm.value.set()
 
 
 @dp.callback_query_handler(text_contains='ignore', state='*')
-async def ignore_handler(call: CallbackQuery) -> None:
+async def ignore_button_handler(call: CallbackQuery) -> None:
     """
     Функция, которая игнорирует нажатие, на неактивные кнопки.
+    :type call: CallbackQuery
     :param call: Запрос от кнопки.
     """
     try:
         logging.debug(f'Игнорируем кнопку. Пользователь с id {call.from_user.id}.')
         await call.answer("Это не кнопка!")
     except Exception as e:
-        logging.error(f"{ignore_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
+        logging.error(f"{ignore_button_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
         await IncomeSpendForm.value.set()
 
 
 @dp.message_handler(content_types=['text'], state='*')
-async def on_all_not_command_message(message: types.Message, state: FSMContext) -> None:
+async def on_all_not_command_message_handler(message: types.Message, state: FSMContext) -> None:
     """
-    Функция, отвечающая за запуск действий с текстом, отправленным пользователем.
+    Функция, отвечающая за запуск действий с текстом без команд, отправленным пользователем.
+    Создаёт подсказки для пользователя.
+    :type state: FSMContext
+    :type message: Message
     :param state: Состояние.
     :param message: Экземпляр сообщения
     """
@@ -433,14 +462,16 @@ async def on_all_not_command_message(message: types.Message, state: FSMContext) 
         if e == "Message is too long":
             await message.answer("Это слишком большое сообщение для меня!", reply_markup=inline_keybords.clear_inline)
         else:
-            logging.error(f"{on_all_not_command_message.__name__}: {e}. Пользователь с id {message.from_user.id}.")
+            logging.error(f"{on_all_not_command_message_handler.__name__}: {e}. "
+                          f"Пользователь с id {message.from_user.id}.")
         await IncomeSpendForm.value.set()
 
 
 @dp.callback_query_handler(lambda c: c.data and c.data.startswith('previous_month'), state=IncomeSpendForm.date)
-async def process_previous_month_callback(call: CallbackQuery) -> None:
+async def process_previous_month_button_handler(call: CallbackQuery) -> None:
     """
     Функция, реагирующая на нажатие на кнопку в календаре, переносящую на прошлый месяц, изменяет календарь.
+    :type call: CallbackQuery
     :param call: Запрос от кнопки.
     """
     try:
@@ -458,14 +489,15 @@ async def process_previous_month_callback(call: CallbackQuery) -> None:
         await dp.bot.answer_callback_query(call.id)
         await call.answer()
     except Exception as e:
-        logging.error(f"{process_previous_month_callback.__name__}: {e}. Пользователь с id {call.from_user.id}.")
+        logging.error(f"{process_previous_month_button_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
         await IncomeSpendForm.isSpend.set()
 
 
 @dp.callback_query_handler(lambda c: c.data and c.data.startswith('next_month'), state=IncomeSpendForm.date)
-async def process_next_month_callback(call: CallbackQuery) -> None:
+async def process_next_month_button_handler(call: CallbackQuery) -> None:
     """
     Функция, реагирующая на нажатие на кнопку в календаре, переносящую на следующий месяц, изменяет календарь.
+    :type call: CallbackQuery
     :param call: Запрос от кнопки.
     """
     try:
@@ -483,14 +515,16 @@ async def process_next_month_callback(call: CallbackQuery) -> None:
         await dp.bot.answer_callback_query(call.id)
         await call.answer()
     except Exception as e:
-        logging.error(f"{process_next_month_callback.__name__}: {e}. Пользователь с id {call.from_user.id}.")
+        logging.error(f"{process_next_month_button_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
         await IncomeSpendForm.isSpend.set()
 
 
 @dp.callback_query_handler(text_contains='calendar:delete', state=IncomeSpendForm.date)
-async def cancel_calendar_handler(call: CallbackQuery, state: FSMContext) -> None:
+async def cancel_calendar_button_handler(call: CallbackQuery, state: FSMContext) -> None:
     """
-    Функция, которая отменяет выбор даты, возвращая в прошлое состояние с сохранением данных
+    Функция, которая отменяет выбор даты, возвращая в прошлое состояние с сохранением данных.
+    :type state: FSMContext
+    :type call: CallbackQuery
     :param call: Запрос от кнопки
     :param state: Состояние.
     """
@@ -502,14 +536,16 @@ async def cancel_calendar_handler(call: CallbackQuery, state: FSMContext) -> Non
         await state.set_state(IncomeSpendForm.isSpend)
         await state.set_data(data)
     except Exception as e:
-        logging.error(f"{cancel_calendar_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
+        logging.error(f"{cancel_calendar_button_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
         await state.set_state(IncomeSpendForm.isSpend)
 
 
 @dp.callback_query_handler(text_contains='category:delete', state=IncomeSpendForm.category)
-async def cancel_category_handler(call: CallbackQuery, state: FSMContext) -> None:
+async def cancel_category_button_handler(call: CallbackQuery, state: FSMContext) -> None:
     """
-    Функция, которая отменяет выбор категории, возвращая в прошлое состояние с сохранением данных
+    Функция, которая отменяет выбор категории, возвращая в прошлое состояние с сохранением данных.
+    :type state: FSMContext
+    :type call: CallbackQuery
     :param call: Запрос от кнопки
     :param state: Состояние.
     """
@@ -521,14 +557,16 @@ async def cancel_category_handler(call: CallbackQuery, state: FSMContext) -> Non
         await state.set_state(IncomeSpendForm.isSpend)
         await state.set_data(data)
     except Exception as e:
-        logging.error(f"{cancel_category_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
+        logging.error(f"{cancel_category_button_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
         await state.set_state(IncomeSpendForm.isSpend)
 
 
 @dp.callback_query_handler(text_contains='subcategory:delete', state=IncomeSpendForm.subcategory)
-async def cancel_subcategory_handler(call: CallbackQuery, state: FSMContext) -> None:
+async def cancel_subcategory_button_handler(call: CallbackQuery, state: FSMContext) -> None:
     """
-    Функция, которая отменяет выбор подкатегории, возвращая в прошлое состояние с сохранением данных
+    Функция, которая отменяет выбор подкатегории, возвращая в прошлое состояние с сохранением данных.
+    :type state: FSMContext
+    :type call: CallbackQuery
     :param call: Запрос от кнопки
     :param state: Состояние.
     """
@@ -540,14 +578,15 @@ async def cancel_subcategory_handler(call: CallbackQuery, state: FSMContext) -> 
         await state.set_state(IncomeSpendForm.isSpend)
         await state.set_data(data)
     except Exception as e:
-        logging.error(f"{cancel_subcategory_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
+        logging.error(f"{cancel_subcategory_button_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
         await state.set_state(IncomeSpendForm.isSpend)
 
 
 @dp.callback_query_handler(state='*', text_contains="message:clear")
-async def clear_handler(call: CallbackQuery) -> None:
+async def clear_button_handler(call: CallbackQuery) -> None:
     """
-    Функция, которая игнорирует нажатие, на неактивные кнопки.
+    Функция, которая удаляет сообщение по нажатию на кнопку.
+    :type call: CallbackQuery
     :param call: Запрос от кнопки.
     """
     try:
@@ -555,19 +594,20 @@ async def clear_handler(call: CallbackQuery) -> None:
         await call.message.delete()
         await call.answer("Скрыто!")
     except Exception as e:
-        logging.error(f"{clear_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
+        logging.error(f"{clear_button_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
         await IncomeSpendForm.value.set()
 
 
 @dp.callback_query_handler(state='*')
-async def ignore_handler(call: CallbackQuery) -> None:
+async def ignore_button_handler(call: CallbackQuery) -> None:
     """
-    Функция, которая игнорирует нажатие, на неактивные кнопки.
+    Функция, которая игнорирует нажатие на неактивные кнопки.
+    :type call: CallbackQuery
     :param call: Запрос от кнопки.
     """
     try:
         logging.debug(f'Игнорируем кнопку. Пользователь с id {call.from_user.id}.')
         await call.answer("Недоступно!")
     except Exception as e:
-        logging.error(f"{ignore_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
+        logging.error(f"{ignore_button_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
         await IncomeSpendForm.value.set()

@@ -4,7 +4,12 @@ import os
 from database import db_functions
 
 
-async def get_export_table(user_id):
+async def get_export_table(user_id: str) -> str:
+    """
+    Функция, которая создаёт сsv таблицу экспорта для пользователя и возвращает путь к нему.
+    :param user_id: ID пользователя Telegram.
+    :return: Путь в строковом представлении.
+    """
     if not os.path.exists('temporary'):
         os.makedirs('temporary')
     if not os.path.exists('temporary\\export'):

@@ -17,7 +17,9 @@ class SettingsForm(StatesGroup):
     transfer_remainer = State()
     # Удаляем событие
     delete_event = State()
+    # Удаление событие траты
     delete_event_spend = State()
+    # Удаляем событие доходов
     delete_event_income = State()
     # Добавляем событие
     add_event = State()

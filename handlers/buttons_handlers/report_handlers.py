@@ -12,16 +12,18 @@ from handlers.models.report_model import ReportForm
 from helpers import report, full_report, export
 
 
-@dp.callback_query_handler(text_contains='report:small', state=[ReportForm.start])
-async def small_report_handler(call: CallbackQuery, state: FSMContext) -> None:
+@dp.callback_query_handler(text_contains='report:small', state=ReportForm.start)
+async def small_report_menu_button_handler(call: CallbackQuery, state: FSMContext) -> None:
     """
-    Функция, которая отменяет действие в настройках, возвращая к старту.
+    Функция, которая отправляет пользователю отчёт по месяцам как сообщение.
+    :type state: FSMContext
+    :type call: CallbackQuery
     :param call: Запрос от кнопки.
     :param state: Состояние.
     """
     try:
         await call.message.delete()
-        logging.debug(f'Получаем маленький отчет. Пользователь с id {call.from_user.id}.')
+        logging.debug(f'Получаем маленький отчет по нажатию на кнопку. Пользователь с id {call.from_user.id}.')
         await ReportForm.small_report.set()
         now = datetime.date.today()
         await call.message.answer(
@@ -30,19 +32,21 @@ async def small_report_handler(call: CallbackQuery, state: FSMContext) -> None:
             reply_markup=await inline_keybords.create_report_keyboard_small(now))
         await call.answer()
     except Exception as e:
-        logging.error(f"{small_report_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
+        logging.error(f"{small_report_menu_button_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
         await state.set_state(IncomeSpendForm.value)
 
 
 @dp.callback_query_handler(text_contains='more:', state=ReportForm.small_report)
-async def expand_small_report_handler(call: CallbackQuery, state: FSMContext) -> None:
+async def expand_small_report_button_handler(call: CallbackQuery, state: FSMContext) -> None:
     """
-    Функция, которая отвечает за удаление события.
+    Функция, которая отвечает за расширение текущего отчёта, показывает статистику с подкатегориями.
+    :type state: FSMContext
+    :type call: CallbackQuery
     :param call: Запрос от кнопки
     :param state: Состояние.
     """
     try:
-        logging.debug(f'Делаем маленький отчет подробнее. Пользователь с id {call.from_user.id}.')
+        logging.debug(f'Делаем маленький отчёт подробнее. Пользователь с id {call.from_user.id}.')
         date = call.data.split(':')
         now = datetime.datetime.strptime(date[1], "%Y-%m-%d")
         await call.message.edit_text(
@@ -51,19 +55,21 @@ async def expand_small_report_handler(call: CallbackQuery, state: FSMContext) ->
             reply_markup=await inline_keybords.create_report_keyboard_small(now, False))
         await call.answer()
     except Exception as e:
-        logging.error(f"{expand_small_report_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
+        logging.error(f"{expand_small_report_button_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
         await state.set_state(IncomeSpendForm.value)
 
 
 @dp.callback_query_handler(text_contains='less:', state=ReportForm.small_report)
-async def expand_small_report_handler(call: CallbackQuery, state: FSMContext) -> None:
+async def reduce_small_report_button_handler(call: CallbackQuery, state: FSMContext) -> None:
     """
-    Функция, которая отвечает за удаление события.
+    Функция, которая отвечает за уменьшение текущего отчёта, показывает статистику только с категориями.
+    :type state: FSMContext
+    :type call: CallbackQuery
     :param call: Запрос от кнопки
     :param state: Состояние.
     """
     try:
-        logging.debug(f'Делаем маленький отчет менее подробным. Пользователь с id {call.from_user.id}.')
+        logging.debug(f'Делаем маленький отчёт менее подробным. Пользователь с id {call.from_user.id}.')
         date = call.data.split(':')
         now = datetime.datetime.strptime(date[1], "%Y-%m-%d")
         await call.message.edit_text(
@@ -72,19 +78,21 @@ async def expand_small_report_handler(call: CallbackQuery, state: FSMContext) ->
             reply_markup=await inline_keybords.create_report_keyboard_small(now))
         await call.answer()
     except Exception as e:
-        logging.error(f"{expand_small_report_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
+        logging.error(f"{reduce_small_report_button_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
         await state.set_state(IncomeSpendForm.value)
 
 
 @dp.callback_query_handler(text_contains='change:', state=ReportForm.small_report)
-async def change_small_report_handler(call: CallbackQuery, state: FSMContext) -> None:
+async def change_moths_small_report_button_handler(call: CallbackQuery, state: FSMContext) -> None:
     """
-    Функция, которая отвечает за удаление события.
+    Функция, которая отвечает за изменение текущего месяца отчёта.
+    :type state: FSMContext
+    :type call: CallbackQuery
     :param call: Запрос от кнопки
     :param state: Состояние.
     """
     try:
-        logging.debug(f'Меняем маленький отчет менее подробным. Пользователь с id {call.from_user.id}.')
+        logging.debug(f'Меняем маленький отчёт на другой месяц. Пользователь с id {call.from_user.id}.')
         date = call.data.split(':')
         now = datetime.datetime.strptime(date[1], "%Y-%m-%d")
         await call.message.edit_text(
@@ -93,20 +101,24 @@ async def change_small_report_handler(call: CallbackQuery, state: FSMContext) ->
             reply_markup=await inline_keybords.create_report_keyboard_small(now))
         await call.answer()
     except Exception as e:
-        logging.error(f"{change_small_report_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
+        logging.error(f"{change_moths_small_report_button_handler.__name__}: {e}."
+                      f" Пользователь с id {call.from_user.id}.")
         await state.set_state(IncomeSpendForm.value)
 
 
 @dp.callback_query_handler(text_contains='report:full', state=[ReportForm.start])
-async def big_report_handler(call: CallbackQuery, state: FSMContext) -> None:
+async def big_report_menu_button_handler(call: CallbackQuery, state: FSMContext) -> None:
     """
-    Функция, которая отменяет действие в настройках, возвращая к старту.
+    Функция, которая отправляет сообщения с выбором параметров для большого отчёта.
+    :type state: FSMContext
+    :type call: CallbackQuery
     :param call: Запрос от кнопки.
     :param state: Состояние.
     """
     try:
         await call.message.delete()
-        logging.debug(f'Получаем большой отчет. Пользователь с id {call.from_user.id}.')
+        logging.debug(f'Отправляем сообщение с выбором параметров для большого отчёта.'
+                      f' Пользователь с id {call.from_user.id}.')
         await ReportForm.big_report.set()
         await call.message.answer(
             f"📊 *Отчет Excel*\n\n_Выберете период с помощью кнопок и подтвердите создание_",
@@ -114,20 +126,23 @@ async def big_report_handler(call: CallbackQuery, state: FSMContext) -> None:
             reply_markup=inline_keybords.big_report_inline)
         await call.answer()
     except Exception as e:
-        logging.error(f"{small_report_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
+        logging.error(f"{big_report_menu_button_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
         await state.set_state(IncomeSpendForm.value)
 
 
 @dp.callback_query_handler(lambda c: c.data and c.data.startswith('date:'), state=[ReportForm.report_start,
                                                                                    ReportForm.report_end])
-async def date_message_handler(call: CallbackQuery, state: FSMContext) -> None:
+async def date_select_button_handler(call: CallbackQuery, state: FSMContext) -> None:
     """
-    Функция, которая реагирует на нажатие кнопки в календаре.
+    Функция, которая реагирует на нажатие кнопки в календаре, в зависимости от текущего состояния устанавливает дату
+    как начало или конец периода.
+    :type state: FSMContext
+    :type call: CallbackQuery
     :param call: Запрос от кнопки.
     :param state: Состояние.
     """
     try:
-        logging.debug(f"Получаем дату. Пользователь с id {call.from_user.id}.")
+        logging.debug(f"Получаем дату для выбора периода отчёта. Пользователь с id {call.from_user.id}.")
         year, month, day = map(int, call.data.split(':')[1:])
         data = datetime.datetime(year, month, day)
         if await state.get_state() == ReportForm.report_end.state:
@@ -139,7 +154,7 @@ async def date_message_handler(call: CallbackQuery, state: FSMContext) -> None:
         await call.message.delete()
         await ReportForm.big_report.set()
     except Exception as e:
-        logging.error(f"{date_message_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
+        logging.error(f"{date_select_button_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
         await call.message.delete()
         await call.message.answer("Произошла непредвиденная ошибка, попробуйте создать отчет снова!",
                                   reply_markup=inline_keybords.clear_inline)
@@ -147,9 +162,10 @@ async def date_message_handler(call: CallbackQuery, state: FSMContext) -> None:
 
 
 @dp.callback_query_handler(text_contains='change_date:', state=ReportForm.big_report)
-async def send_date_picker(call: CallbackQuery) -> None:
+async def send_date_picker_button_handler(call: CallbackQuery) -> None:
     """
     Функция, которая отвечает за обработку нажатия на кнопку изменения даты суммы, отправляя сообщение с календарём.
+    :type call: CallbackQuery
     :param call: Вызов от кнопки.
     """
     try:
@@ -165,15 +181,16 @@ async def send_date_picker(call: CallbackQuery) -> None:
         await call.message.answer("Выберите дату:", reply_markup=calendar_keyboard, disable_notification=True)
         await call.answer()
     except Exception as e:
-        logging.error(f"{send_date_picker.__name__}: {e}. Пользователь с id {call.from_user.id}.")
+        logging.error(f"{send_date_picker_button_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
         await IncomeSpendForm.value.set()
 
 
 @dp.callback_query_handler(lambda c: c.data and c.data.startswith('previous_month'), state=[ReportForm.report_start,
                                                                                             ReportForm.report_end])
-async def process_previous_month_callback(call: CallbackQuery) -> None:
+async def process_previous_month_button_handler(call: CallbackQuery) -> None:
     """
     Функция, реагирующая на нажатие на кнопку в календаре, переносящую на прошлый месяц, изменяет календарь.
+    :type call: CallbackQuery
     :param call: Запрос от кнопки.
     """
     try:
@@ -192,7 +209,7 @@ async def process_previous_month_callback(call: CallbackQuery) -> None:
         await dp.bot.answer_callback_query(call.id)
         await call.answer()
     except Exception as e:
-        logging.error(f"{process_previous_month_callback.__name__}: {e}. Пользователь с id {call.from_user.id}.")
+        logging.error(f"{process_previous_month_button_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
         await ReportForm.big_report.set()
 
 
@@ -201,6 +218,7 @@ async def process_previous_month_callback(call: CallbackQuery) -> None:
 async def process_next_month_callback(call: CallbackQuery) -> None:
     """
     Функция, реагирующая на нажатие на кнопку в календаре, переносящую на следующий месяц, изменяет календарь.
+    :type call: CallbackQuery
     :param call: Запрос от кнопки.
     """
     try:
@@ -226,12 +244,14 @@ async def process_next_month_callback(call: CallbackQuery) -> None:
                                                                    ReportForm.report_end])
 async def cancel_calendar_handler(call: CallbackQuery, state: FSMContext) -> None:
     """
-    Функция, которая отменяет выбор даты, возвращая в прошлое состояние с сохранением данных
+    Функция, которая отменяет выбор даты, возвращая в прошлое состояние с сохранением данных.
+    :type state: FSMContext
+    :type call: CallbackQuery
     :param call: Запрос от кнопки
     :param state: Состояние.
     """
     try:
-        logging.debug(f'Отменяем выбор даты. Пользователь с id {call.from_user.id}.')
+        logging.debug(f'Отменяем выбор даты при создании большого отчёта. Пользователь с id {call.from_user.id}.')
         await call.answer()
         await call.message.delete()
         data = await state.get_data()
@@ -243,19 +263,21 @@ async def cancel_calendar_handler(call: CallbackQuery, state: FSMContext) -> Non
 
 
 @dp.callback_query_handler(text_contains='proceed', state=ReportForm.big_report)
-async def proceed_handler(call: CallbackQuery, state: FSMContext) -> None:
+async def proceed_button_handler(call: CallbackQuery, state: FSMContext) -> None:
     """
-    Функция, которая рагирует на кнопку добавления суммы как траты или дохода. Закрывает набор состояний.
+    Функция, которая отвечает за подтверждение данных от пользователя при создании большого отчёта.
+    Если с данными все данные подходят под формат, отправляет сообщение с отчётом как документ.
+    :type state: FSMContext
+    :type call: CallbackQuery
     :param call: Вызов от кнопки.
     :param state: Состояние.
     """
     try:
-        logging.debug(f"Добавляем информацию. Пользователь с id {call.from_user.id}.")
+        logging.debug(f"Подтверждение. Отправляем большой отчёт. Пользователь с id {call.from_user.id}.")
         data = (await state.get_data())
         if 'report_end' not in data.keys() or 'report_start' not in data.keys():
             await call.answer("Установите даты!")
             return
-
         if data["report_end"] <= data["report_start"]:
             await call.answer("Дата старта должна быть раньше!")
             return
@@ -271,24 +293,27 @@ async def proceed_handler(call: CallbackQuery, state: FSMContext) -> None:
         await IncomeSpendForm.value.set()
         try:
             os.remove(path_to_file)
-        except Exception:
+        except Exception as io_error:
+            logging.debug(f"{proceed_button_handler.__name__}: {io_error}. Пользователь с id {call.from_user.id}.")
             pass
     except Exception as e:
-        logging.error(f"{proceed_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
+        logging.error(f"{proceed_button_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
         await call.answer("При создании отчета произошла ошибка, попробуйте еще раз!")
         await IncomeSpendForm.value.set()
 
 
 @dp.callback_query_handler(text_contains='report:export', state=[ReportForm.start])
-async def export_handler(call: CallbackQuery, state: FSMContext) -> None:
+async def export_menu_button_handler(call: CallbackQuery, state: FSMContext) -> None:
     """
-    Функция, которая отменяет действие в настройках, возвращая к старту.
+    Функция, которая отвечает за отправку пользователю экспортных данных.
+    :type state: FSMContext
+    :type call: CallbackQuery
     :param call: Запрос от кнопки.
     :param state: Состояние.
     """
     try:
         await call.message.delete()
-        logging.debug(f'Получаем файл для экспорта. Пользователь с id {call.from_user.id}.')
+        logging.debug(f'Получаем файл для экспорта и отправляем пользователю. Пользователь с id {call.from_user.id}.')
         await ReportForm.export.set()
         path_to_file = await export.get_export_table(str(call.from_user.id))
         await call.message.answer_document(open(path_to_file, 'rb'),
@@ -298,10 +323,11 @@ async def export_handler(call: CallbackQuery, state: FSMContext) -> None:
         await state.set_state(IncomeSpendForm.value)
         try:
             os.remove(path_to_file)
-        except Exception:
+        except Exception as io_error:
+            logging.debug(f"{export_menu_button_handler.__name__}: {io_error}. Пользователь с id {call.from_user.id}.")
             pass
     except Exception as e:
-        logging.error(f"{export_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
+        logging.error(f"{export_menu_button_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
         await call.message.answer(
             f"📤 *Экспорт*\n\n_Произошла ошибка_",
             parse_mode="MarkdownV2", reply_markup=inline_keybords.clear_inline)

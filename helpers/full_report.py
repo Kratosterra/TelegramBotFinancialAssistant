@@ -7,7 +7,15 @@ import xlsxwriter as xlwt
 from database import db_functions
 
 
-async def get_report_table(user_id, start: datetime, end: datetime):
+async def get_report_table(user_id: str, start: datetime, end: datetime) -> str:
+    """
+    Функция, которая создаёт большой отчет в Excel в заданном периоде для указанного пользователя и
+     возвращает путь к нему.
+    :param user_id: ID пользователя в Telegram.
+    :param start: Начало периода.
+    :param end: Конец периода.
+    :return: Путь к файлу таблицы.
+    """
     try:
         if not os.path.exists('temporary'):
             os.makedirs('temporary')
@@ -23,16 +31,16 @@ async def get_report_table(user_id, start: datetime, end: datetime):
 
         book = xlwt.Workbook(f'temporary\\report\\{user_id}.xlsx')
 
-        category_format, date_format, income_format, name_format, spend_format, subcategory_format, up_format = await create_formats(
-            book)
+        category_format, date_format, income_format, name_format, spend_format, subcategory_format, up_format = \
+            await _create_formats(book)
         sheet_report = book.add_worksheet("Отчёт")
-        await create_report_worksheet(category_format, currency, date_format, end, income_format, name_format,
-                                      sheet_report, spend_format, spends_sums, start, subcategory_format, sum_income,
-                                      sum_spend)
+        await _create_report_worksheet(category_format, currency, date_format, end, income_format, name_format,
+                                       sheet_report, spend_format, spends_sums, start, subcategory_format, sum_income,
+                                       sum_spend)
         sheet_spends = book.add_worksheet("Траты")
-        await create_spend_worksheet(category_format, currency, sheet_spends, spends, subcategory_format, up_format)
+        await _create_spend_worksheet(category_format, currency, sheet_spends, spends, subcategory_format, up_format)
         sheet_incomes = book.add_worksheet("Доходы")
-        await create_income_worksheet(currency, incomes, sheet_incomes, subcategory_format, up_format)
+        await _create_income_worksheet(currency, incomes, sheet_incomes, subcategory_format, up_format)
 
         book.close()
 
@@ -41,7 +49,12 @@ async def get_report_table(user_id, start: datetime, end: datetime):
         logging.error(f"{get_report_table.__name__}: {e}. Пользователь с id {user_id}.")
 
 
-async def create_formats(book):
+async def _create_formats(book: xlwt.Workbook):
+    """
+    Функция, которая добавляет форматы для ячеек к книге.
+    :param book: Книга, к которой мы будем добавлять форматы.
+    :return: Форматы ячеек.
+    """
     name_format = book.add_format()
     name_format.set_left(1)
     name_format.set_right(1)
@@ -87,8 +100,26 @@ async def create_formats(book):
     return category_format, date_format, income_format, name_format, spend_format, subcategory_format, up_format
 
 
-async def create_report_worksheet(category_format, currency, date_format, end, income_format, name_format, sheet_report,
-                                  spend_format, spends_sums, start, subcategory_format, sum_income, sum_spend):
+async def _create_report_worksheet(category_format, currency: str, date_format, end: datetime, income_format,
+                                   name_format, sheet_report: xlwt.Workbook.add_worksheet,
+                                   spend_format, spends_sums, start: datetime, subcategory_format, sum_income: float,
+                                   sum_spend: float):
+    """
+    Функция создающая страницу с отчётом внутри книги.
+    :param category_format: Формат ячеек категории.
+    :param currency: Текущая валюта в строковом представлении.
+    :param date_format: Формат ячеек даты.
+    :param end: Дата окончания периода отчёта.
+    :param income_format: Формат ячеек доходов.
+    :param name_format: Формат ячеек имени отчёта.
+    :param sheet_report: Страница книги.
+    :param spend_format: Формат ячеек трат.
+    :param spends_sums: Формат ячеек сумм трат.
+    :param start: Дата начала отчёта.
+    :param subcategory_format: Формат ячеек подкатегории.
+    :param sum_income: Сумма доходов.
+    :param sum_spend: Сумма трат.
+    """
     sheet_report.set_column(0, 2, 30)
     sheet_report.set_column(3, 3, 12)
     sheet_report.write(0, 0, "Подробный отчёт", name_format)
@@ -106,16 +137,16 @@ async def create_report_worksheet(category_format, currency, date_format, end, i
     row = 9
     for category in spends_sums.keys():
         if category == "$no_category":
-            all = spends_sums[category]['$all']
+            all_spends = spends_sums[category]['$all']
             sheet_report.write(row, 0, "Без категории:", category_format)
-            sheet_report.write(row, 1, all, category_format)
+            sheet_report.write(row, 1, all_spends, category_format)
             sheet_report.write(row, 2, f"{currency}", category_format)
             row += 2
             continue
-        all = spends_sums[category]['$all']
+        all_spends = spends_sums[category]['$all']
         no_category = spends_sums[category]['$no_subcategory']
         sheet_report.write(row, 0, f"{category}:", category_format)
-        sheet_report.write(row, 1, all, category_format)
+        sheet_report.write(row, 1, all_spends, category_format)
         sheet_report.write(row, 2, currency, category_format)
         row += 2
         sheet_report.write(row, 1, "Без подкатегории:", subcategory_format)
@@ -125,15 +156,23 @@ async def create_report_worksheet(category_format, currency, date_format, end, i
         for sub_category in (spends_sums[category].keys()):
             if sub_category == "$all" or sub_category == "$no_subcategory":
                 continue
-            sum = spends_sums[category][sub_category]
+            sum_all = spends_sums[category][sub_category]
             sheet_report.write(row, 1, f"{sub_category}:", subcategory_format)
-            sheet_report.write(row, 2, sum, subcategory_format)
+            sheet_report.write(row, 2, sum_all, subcategory_format)
             sheet_report.write(row, 3, currency, subcategory_format)
             row += 1
         row += 2
 
 
-async def create_income_worksheet(currency, incomes, sheet_incomes, subcategory_format, up_format):
+async def _create_income_worksheet(currency: str, incomes: dict, sheet_incomes, subcategory_format, up_format):
+    """
+    Функция создающая страницу с доходами внутри книги.
+    :param currency: Текущая валюта.
+    :param incomes: Доходы.
+    :param sheet_incomes: Страница доходов.
+    :param subcategory_format: Формат ячеек подкатегории.
+    :param up_format: Формат заголовков таблицы.
+    """
     sheet_incomes.set_column(1, 3, 30)
     sheet_incomes.set_column(4, 4, 8)
     row = 0
@@ -157,7 +196,17 @@ async def create_income_worksheet(currency, incomes, sheet_incomes, subcategory_
         row += 1
 
 
-async def create_spend_worksheet(category_format, currency, sheet_spends, spends, subcategory_format, up_format):
+async def _create_spend_worksheet(category_format, currency: str, sheet_spends, spends: dict, subcategory_format,
+                                  up_format):
+    """
+    Функция, которая создаёт страницу с тратами в книге.
+    :param category_format: Формат ячеек с категориями.
+    :param currency: Валюта в строковом представлении.
+    :param sheet_spends: Страница трат.
+    :param spends: Словарь с тратами пользователя.
+    :param subcategory_format: Формат ячеек с подкатегориями.
+    :param up_format: Формат ячеек-заголовков.
+    """
     sheet_spends.set_column(0, 4, 30)
     sheet_spends.set_column(5, 5, 12)
     row = 1
@@ -169,10 +218,10 @@ async def create_spend_worksheet(category_format, currency, sheet_spends, spends
             sheet_spends.write(row, 3, "Сумма", up_format)
             sheet_spends.write(row, 4, "Валюта", up_format)
             row += 1
-            all = spends[category]['$all']
+            all_spends = spends[category]['$all']
             sheet_spends.write(row, 0, "Без категории:", category_format)
             row += 1
-            for spend in all:
+            for spend in all_spends:
                 if spend['name_of_spend'] is None:
                     sheet_spends.write(row, 1, "Безымянный", subcategory_format)
                 else:
@@ -208,10 +257,10 @@ async def create_spend_worksheet(category_format, currency, sheet_spends, spends
         for sub_category in (spends[category].keys()):
             if sub_category == "$all" or sub_category == "$no_subcategory":
                 continue
-            sum = spends[category][sub_category]
+            sum_all = spends[category][sub_category]
             sheet_spends.write(row, 1, sub_category, subcategory_format)
             row += 1
-            for spend in sum:
+            for spend in sum_all:
                 if spend['name_of_spend'] is None:
                     sheet_spends.write(row, 2, "Безымянный", subcategory_format)
                 else:

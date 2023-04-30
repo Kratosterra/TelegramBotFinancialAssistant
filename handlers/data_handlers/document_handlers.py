@@ -2,6 +2,9 @@ import logging
 import os
 from pathlib import Path
 
+from aiogram import types
+from aiogram.dispatcher import FSMContext
+
 from bot import dp
 from database import db_functions
 from handlers.keyboards import inline_keybords
@@ -9,7 +12,15 @@ from handlers.models.income_spend_model import IncomeSpendForm
 from helpers import import_data, qr_scanner
 
 
-async def on_import_from_user_handler(message, state):
+async def on_import_from_user_handler(message: types.Message, state: FSMContext) -> None:
+    """
+    Функция, которая отвечает за импорт данных при получении нужного документа.
+     Добавляет записи о тратах и доходах в базу данных.
+    :type state: FSMContext
+    :type message: Message
+    :param message: Сообщение от пользователя.
+    :param state: Состояние.
+    """
     try:
         file_id = message.document.file_id
         file = await dp.bot.get_file(file_id)
@@ -24,8 +35,9 @@ async def on_import_from_user_handler(message, state):
             if not os.path.exists('temporary\\import'):
                 os.makedirs('temporary\\import')
             await dp.bot.download_file(file_path, f"temporary\\import\\{str(message.from_user.id)}.csv")
-            num_of_incomes, num_of_spends, status = await import_data.import_table(str(message.from_user.id),
-                                                                                   path=f"temporary\\import\\{str(message.from_user.id)}.csv")
+            num_of_incomes, num_of_spends, status = \
+                await import_data.import_table(str(message.from_user.id),
+                                               path=f"temporary\\import\\{str(message.from_user.id)}.csv")
             if status:
                 await message.answer(f"*Импорт прошёл успешно*\n\n_Добавлено доходов\:_ {num_of_incomes}\n"
                                      f"_Добавлено трат\:_ {num_of_spends}\n", parse_mode="MarkdownV2",
@@ -38,14 +50,24 @@ async def on_import_from_user_handler(message, state):
             await state.set_state(IncomeSpendForm.value)
             try:
                 os.remove(f"temporary\\import\\{str(message.from_user.id)}.csv")
-            except Exception:
+            except Exception as io_error:
+                logging.debug(f"{on_import_from_user_handler.__name__}: {io_error}."
+                              f" Пользователь с id {message.from_user.id}.")
                 pass
     except Exception as e:
         logging.error(f"{on_import_from_user_handler.__name__}: {e}. Пользователь с id {message.from_user.id}.")
         await state.set_state(IncomeSpendForm.value)
 
 
-async def on_photo_from_user(message, state):
+async def on_photo_from_user_handler(message: types.Message, state: FSMContext) -> None:
+    """
+    Функция, которая отвечает за сканирование данных из фото. Если сканирование прошло успешно,
+     отправляет пользователя в меню сумм.
+    :type state: FSMContext
+    :type message: Message
+    :param message: Сообщение от пользователя.
+    :param state: Состояние.
+    """
     try:
         if not os.path.exists('temporary'):
             os.makedirs('temporary')
@@ -62,17 +84,18 @@ async def on_photo_from_user(message, state):
                     parse_mode="MarkdownV2",
                     reply_markup=inline_keybords.clear_inline)
                 return
-            sum = float(data[data.find("&s=") + 3:data.find("&fn=")])
+            sum_value = float(data[data.find("&s=") + 3:data.find("&fn=")])
             await IncomeSpendForm.isSpend.set()
-            if float(sum) > 10000000000 or float(sum) < 0.01:
+            if float(sum_value) > 10000000000 or float(sum_value) < 0.01:
                 await message.answer("*Это уже слишком для меня!*\n\n"
                                      "_Полученная сумма либо крайне маленькая\, либо большая\!_",
                                      parse_mode="MarkdownV2", reply_markup=inline_keybords.clear_inline)
                 await IncomeSpendForm.value.set()
                 return
-            await state.update_data(value=round(float(sum), 2))
+            await state.update_data(value=round(float(sum_value), 2))
             await message.answer(
-                f"Сумма: {round(float(sum), 2)} {await db_functions.get_user_currency(str(message.from_user.id))}",
+                f"Сумма: {round(float(sum_value), 2)}"
+                f" {await db_functions.get_user_currency(str(message.from_user.id))}",
                 reply_markup=inline_keybords.income_spend_inline, disable_notification=True)
         else:
             await message.answer(
@@ -81,7 +104,7 @@ async def on_photo_from_user(message, state):
                 reply_markup=inline_keybords.clear_inline)
             await state.set_state(IncomeSpendForm.value)
     except Exception as e:
-        logging.error(f"{on_photo_from_user.__name__}: {e}. Пользователь с id {message.from_user.id}.")
+        logging.error(f"{on_photo_from_user_handler.__name__}: {e}. Пользователь с id {message.from_user.id}.")
         await message.answer(
             f"*Произошла ошибка при считывании QR кода\.*",
             parse_mode="MarkdownV2",
@@ -90,5 +113,6 @@ async def on_photo_from_user(message, state):
     finally:
         try:
             os.remove(f"temporary\\photo\\{str(message.from_user.id)}.jpg")
-        except Exception:
-            pass
+        except Exception as io_error:
+            logging.debug(f"{on_photo_from_user_handler.__name__}: {io_error}."
+                          f" Пользователь с id {message.from_user.id}.")

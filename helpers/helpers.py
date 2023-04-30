@@ -68,7 +68,7 @@ def get_dates_of_period(start: datetime, end: datetime, this_moths=False) -> lis
 async def check_if_string_is_sum(sum_str: str) -> {bool, float}:
     """
     Проверяет являться ли текстовое значение суммой.
-    :param sum_str: Стрококвое представление.
+    :param sum_str: Строковое представление.
     :return: Является ли тест суммой.
     """
     if sum_str.replace('.', '', 1).isdigit() or sum_str.replace(',', '', 1).isdigit():

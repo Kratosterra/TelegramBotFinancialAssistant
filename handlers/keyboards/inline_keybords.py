@@ -122,7 +122,7 @@ async def generate_calendar(year: int, month: int) -> InlineKeyboardMarkup:
     return keyboard
 
 
-# Клавиатура, которая появляется, когда пользователь выбирает кнопку Траты и Доходы.
+# Клавиатура, которая появляется, когда пользователь выбирает кнопку Категории.
 income_spend_category_inline = InlineKeyboardMarkup(
     inline_keyboard=[
         [
@@ -171,7 +171,7 @@ async def create_inline_keyboard_sums(data_dict: dict, current_page: int) -> Inl
     Создаёт клавиатуру для выбора сумм из базы данных для пользователя.
     :param data_dict: Словарь с сумами.
     :param current_page: Текущая страница.
-    :return: Клавиатуру
+    :return: Разметку клавиатуры.
     """
     inline_keyboard = InlineKeyboardMarkup(row_width=1)
     page_size = 5
@@ -180,9 +180,11 @@ async def create_inline_keyboard_sums(data_dict: dict, current_page: int) -> Inl
     for item in list(data_dict.keys())[start_index:end_index]:
         text = ""
         if 'name_of_income' in data_dict[item].keys():
-            text += f"[{data_dict[item]['name_of_income']}] {data_dict[item]['value_of_income']} [{data_dict[item]['date_of_income']}]"
+            text += f"[{data_dict[item]['name_of_income']}] {data_dict[item]['value_of_income']}" \
+                    f" [{data_dict[item]['date_of_income']}]"
         else:
-            text += f"[{data_dict[item]['name_of_spend']}] {data_dict[item]['value_of_spend']} [{data_dict[item]['date_of_spend']}]"
+            text += f"[{data_dict[item]['name_of_spend']}] {data_dict[item]['value_of_spend']}" \
+                    f" [{data_dict[item]['date_of_spend']}]"
         inline_keyboard.add(InlineKeyboardButton(text=str(text), callback_data=f"delete:sum:{item}"))
     pagination_row = []
     if current_page > 0:
@@ -240,7 +242,7 @@ report_inline = InlineKeyboardMarkup(
 async def generate_currency_choice_keyboard(buttons: list) -> InlineKeyboardMarkup:
     """
     Функция, которая генерирует клавиатуру для выбора категории.
-    :param buttons: Лист строк, которые будут представлять категории
+    :param buttons: Лист строк, которые будут представлять категории.
     :return: Разметку клавиатуры.
     """
     keyboard = InlineKeyboardMarkup(row_width=3)
@@ -257,6 +259,7 @@ async def generate_currency_choice_keyboard(buttons: list) -> InlineKeyboardMark
     return keyboard
 
 
+# Клавиатура для отказа от ввода.
 refuse_to_input = InlineKeyboardMarkup(
     inline_keyboard=[
         [
@@ -265,6 +268,7 @@ refuse_to_input = InlineKeyboardMarkup(
     ]
 )
 
+# Клавиатура для выбора типа события.
 event_income_spend_inline = InlineKeyboardMarkup(
     inline_keyboard=[
         [
@@ -277,6 +281,7 @@ event_income_spend_inline = InlineKeyboardMarkup(
     ]
 )
 
+# Клавиатура для скрытия сообщений.
 clear_inline = InlineKeyboardMarkup(
     inline_keyboard=[
         [
@@ -285,12 +290,13 @@ clear_inline = InlineKeyboardMarkup(
     ]
 )
 
+
 async def create_inline_keyboard_events(data_dict: dict, current_page: int) -> InlineKeyboardMarkup:
     """
     Создаёт клавиатуру для выбора сумм из базы данных для пользователя.
     :param data_dict: Словарь с событиями.
     :param current_page: Текущая страница.
-    :return: Клавиатуру
+    :return: Разметку клавиатуры.
     """
     inline_keyboard = InlineKeyboardMarkup(row_width=1)
     page_size = 5
@@ -299,9 +305,11 @@ async def create_inline_keyboard_events(data_dict: dict, current_page: int) -> I
     for item in list(data_dict.keys())[start_index:end_index]:
         text = ""
         if 'name_of_income' in data_dict[item].keys():
-            text += f"[{data_dict[item]['name_of_income']}] {data_dict[item]['value_of_income']} [{data_dict[item]['day_of_income']} числа]"
+            text += f"[{data_dict[item]['name_of_income']}] {data_dict[item]['value_of_income']}" \
+                    f" [{data_dict[item]['day_of_income']} числа]"
         else:
-            text += f"[{data_dict[item]['name_of_spending']}] {data_dict[item]['value_of_spending']} [{data_dict[item]['day_of_spending']} числа]"
+            text += f"[{data_dict[item]['name_of_spending']}] {data_dict[item]['value_of_spending']}" \
+                    f" [{data_dict[item]['day_of_spending']} числа]"
         inline_keyboard.add(InlineKeyboardButton(text=str(text), callback_data=f"delete:event:{item}"))
     pagination_row = []
     if current_page > 0:
@@ -348,7 +356,7 @@ spend_event_inline = InlineKeyboardMarkup(
 
 async def get_day_choice_keyboard() -> InlineKeyboardMarkup:
     """
-    Функция, которая генерирует клавиатуру для выбора дня.
+    Функция, которая генерирует клавиатуру для выбора дня события.
     :return: Разметку клавиатуры.
     """
     keyboard = InlineKeyboardMarkup(row_width=7)
@@ -365,7 +373,13 @@ async def get_day_choice_keyboard() -> InlineKeyboardMarkup:
     return keyboard
 
 
-async def create_report_keyboard_small(current_day: datetime, small=True) -> InlineKeyboardMarkup:
+async def create_report_keyboard_small(current_day: datetime, small: bool = True) -> InlineKeyboardMarkup:
+    """
+    Функция, которая генерирует клавиатуру для небольшого отчёта.
+    :param current_day: Дата отчёта.
+    :param small: Является ли отчёт неподробным.
+    :return: Разметку клавиатуры.
+    """
     now_string = current_day.strftime("%Y-%m-%d")
     keyboard = InlineKeyboardMarkup(row_width=2)
     if small:
@@ -379,15 +393,16 @@ async def create_report_keyboard_small(current_day: datetime, small=True) -> Inl
     if current_day.year == datetime.date.today().year and current_day.month == datetime.date.today().month:
         pass
     else:
-        next = current_day + relativedelta(months=+1)
+        next_months = current_day + relativedelta(months=+1)
         keyboard.insert(
-            InlineKeyboardButton(text="След. месяц ➡️", callback_data=f"change:{next.strftime('%Y-%m-%d')}"))
+            InlineKeyboardButton(text="След. месяц ➡️", callback_data=f"change:{next_months.strftime('%Y-%m-%d')}"))
     keyboard.row()
     keyboard.insert(InlineKeyboardButton(text="❌ Назад", callback_data=f"cancel"))
     keyboard.row()
     return keyboard
 
 
+# Клавиатура для выбора параметров большого отчёта в Excel.
 big_report_inline = InlineKeyboardMarkup(
     inline_keyboard=[
         [
