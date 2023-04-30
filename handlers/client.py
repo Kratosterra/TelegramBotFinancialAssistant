@@ -6,7 +6,7 @@ from aiogram.dispatcher.filters import Text
 
 from bot import dp
 from database import db_functions
-from handlers.document_handlers import on_import_from_user_handler, on_photo_from_user
+from handlers.data_handlers.document_handlers import on_import_from_user_handler, on_photo_from_user
 from handlers.keyboards import keyboard, inline_keybords
 from handlers.models.categories_deletion_model import CategoriesAddingForm
 from handlers.models.income_spend_model import IncomeSpendForm
@@ -77,8 +77,8 @@ async def on_incomes_spends(message: types.Message) -> None:
         await message.delete()
         await CategoriesAddingForm.start.set()
         await message.answer(
-            "*Категории и удаление\!* 📈\n\nТут вы можете *добавить и удалить* категории/подкатегории\.\n"
-            "А также *удалить* доходы/траты\!", parse_mode="MarkdownV2",
+            "*Категории и удаление* 📈\n\nТут вы можете *добавить и удалить* категории/подкатегории\.\n"
+            "А также *удалить* доходы/траты\.", parse_mode="MarkdownV2",
             reply_markup=inline_keybords.income_spend_category_inline)
     except Exception as e:
         logging.error(f"{on_incomes_spends.__name__}: {e}. Пользователь с id {message.from_user.id}.")
@@ -94,10 +94,10 @@ async def on_incomes_spends(message: types.Message) -> None:
         await db_functions.execute_events(str(message.from_user.id))
         await message.delete()
         await message.answer(
-            "*Траты и доходы\!* 📝\nЭта кнопка \- просто подсказка\.\n\n"
-            "Чтобы добавить сумму, просто оправьте *число* или *фото чека* в чат\!\n"
+            "*Траты и доходы* 📝\nЭта кнопка \- просто подсказка\.\n\n"
+            "Чтобы добавить сумму, просто оправьте *число* или *фото чека* в чат\.\n"
             "Пример: *123* или *123\.32* или *123\,32*\n\n"
-            "_*Hint:* Отправьте документ *\.csv*, чтобы импортировать данные\!_", parse_mode="MarkdownV2")
+            "_*Hint:* Отправьте документ *\.csv*, чтобы импортировать данные\._", parse_mode="MarkdownV2")
     except Exception as e:
         logging.error(f"{on_incomes_spends.__name__}: {e}. Пользователь с id {message.from_user.id}.")
 
@@ -114,8 +114,8 @@ async def on_settings(message: types.Message) -> None:
         await SettingsForm.start.set()
         await message.answer(
             "*Настройки\!* ⚙️\n\nТут вы сможете *сменить валюту*, перенести *остаток по средствам* с прошлого месяца\.\n"
-            "Добавить или удалить *события* трат или доходов\, которые повторяются каждый месяц в заданный день\!\n"
-            "Настроить *цель* по сэкономленным средствам и *лимит* по тратам за месяц\!\n", parse_mode="MarkdownV2",
+            "Добавить или удалить *события* трат или доходов\, которые повторяются каждый месяц в заданный день\.\n"
+            "Настроить *цель* по сэкономленным средствам и *лимит* по тратам за месяц\.\n", parse_mode="MarkdownV2",
             reply_markup=inline_keybords.settings_inline)
     except Exception as e:
         logging.error(f"{on_settings.__name__}: {e}. Пользователь с id {message.from_user.id}.")

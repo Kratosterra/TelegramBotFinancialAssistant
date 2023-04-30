@@ -130,12 +130,14 @@ income_spend_category_inline = InlineKeyboardMarkup(
             InlineKeyboardButton(text="Удалить Трату 📉", callback_data="delete:spend:button"),
         ],
         [
-            InlineKeyboardButton(text="📝 Категория", callback_data="add:category:button"),
-            InlineKeyboardButton(text="📝 Подкатегория", callback_data="add:subcategory:button"),
+            InlineKeyboardButton(text="📝 Новая Категория", callback_data="add:category:button"),
         ],
         [
-            InlineKeyboardButton(text="🗑 Категория", callback_data="delete:category:button"),
-            InlineKeyboardButton(text="🗑 Подкатегория", callback_data="delete:subcategory:button"),
+            InlineKeyboardButton(text="📝 Новая Подкатегория", callback_data="add:subcategory:button"),
+        ],
+        [
+            InlineKeyboardButton(text="🗑 Категорию", callback_data="delete:category:button"),
+            InlineKeyboardButton(text="🗑 Подкатегорию", callback_data="delete:subcategory:button"),
         ],
         [
             InlineKeyboardButton(text="❌ Назад", callback_data="cancel"),
@@ -199,17 +201,19 @@ settings_inline = InlineKeyboardMarkup(
             InlineKeyboardButton(text="💱 Сменить валюту и пересчитать", callback_data="settings:change:currency"),
         ],
         [
-            InlineKeyboardButton(text="📝 Cобытие", callback_data="settings:add:event"),
-            InlineKeyboardButton(text="🗑 Cобытие", callback_data="settings:delete:event"),
+            InlineKeyboardButton(text="💸 Перенести остаток", callback_data="settings:transfer:remainer"),
+
+        ],
+        [
+            InlineKeyboardButton(text="📝 Добавить Cобытие", callback_data="settings:add:event"),
+        ],
+        [
+            InlineKeyboardButton(text="🗑 Удалить Cобытие", callback_data="settings:delete:event"),
         ],
         [
             InlineKeyboardButton(text="💰 Лимит", callback_data="settings:add:limit"),
             InlineKeyboardButton(text="📩 Цель", callback_data="settings:add:goal"),
         ],
-        [
-            InlineKeyboardButton(text="💸 Перенести остаток", callback_data="settings:transfer:remainer"),
-        ]
-        ,
         [
             InlineKeyboardButton(text="❌ Назад", callback_data="cancel"),
         ]

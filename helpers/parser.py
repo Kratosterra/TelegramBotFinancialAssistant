@@ -4,7 +4,7 @@ import logging
 import requests
 from bs4 import BeautifulSoup
 
-from config.config import currency
+from config.config import CURRENCY
 
 
 def get_exchange_rate(now_currency: str, new_currency: str) -> float:
@@ -14,9 +14,9 @@ def get_exchange_rate(now_currency: str, new_currency: str) -> float:
     :param new_currency: Новая валюта.
     :return: Обменный курс в виде соотношения текущей валюты к новой.
     """
-    if now_currency not in currency.keys() or new_currency not in currency.keys():
+    if now_currency not in CURRENCY.keys() or new_currency not in CURRENCY.keys():
         raise Exception(f"{get_exchange_rate.__name__}: Одна из представленных валют не существует в представлении.")
-    return get_exchange_rate_dict(now_currency)[currency[new_currency]]
+    return get_exchange_rate_dict(now_currency)[CURRENCY[new_currency]]
 
 
 def get_exchange_rate_dict(currency_str: str) -> dict:

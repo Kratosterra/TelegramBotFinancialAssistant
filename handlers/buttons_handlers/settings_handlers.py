@@ -25,7 +25,7 @@ async def change_currency_handler(call: CallbackQuery, state: FSMContext) -> Non
         await SettingsForm.change_currency.set()
         currencies = []
         now_currency = await db_functions.get_user_currency(str(call.from_user.id))
-        for cur in config.currency.keys():
+        for cur in config.CURRENCY.keys():
             if cur != now_currency:
                 currencies.append(cur)
         await call.message.answer(

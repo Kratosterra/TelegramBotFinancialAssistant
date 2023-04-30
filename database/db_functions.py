@@ -104,7 +104,7 @@ async def add_init_categories(user_id: str) -> bool:
     """
     logging.debug(f"Пытаемся добавить начальные категории для пользователя с id: {user_id}.")
     try:
-        categories = config.config.init_dict_of_categories
+        categories = config.config.INIT_DICT_OF_CATEGORIES
         check = (await return_all_categories(user_id)).keys()
         if len(check) == 0:
             for category in categories.keys():
@@ -1012,7 +1012,7 @@ async def recount_values_in_new_currency(user_id: str, to_currency: str) -> bool
                       f"пользователя с id: {user_id}.")
         return False
     try:
-        exchange_rate = helpers.curency_parser.get_exchange_rate(now_currency, to_currency)
+        exchange_rate = helpers.parser.get_exchange_rate(now_currency, to_currency)
         status = await _recount_all_values_of_user(user_id, exchange_rate)
         status = status and await _set_user_currency(user_id, to_currency)
         return status

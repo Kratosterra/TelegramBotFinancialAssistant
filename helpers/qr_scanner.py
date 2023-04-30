@@ -12,6 +12,6 @@ async def get_qr_codes(filename):
             all_data.append(qrcodeData)
     detector = cv2.QRCodeDetector()
     data, bbox, straight_qrcode = detector.detectAndDecode(img)
-    if bbox is not None:
+    if bbox is not None and len(str(data)) != 0:
         all_data.append(str(data))
     return all_data
