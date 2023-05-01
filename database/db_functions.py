@@ -14,6 +14,7 @@ import helpers.parser
 async def initialize_user(user_id: str) -> bool:
     """
     Инициализирует пользователя с определенным id. Создаёт db если ее нет для пользователя.
+    Устанавливает начальные категории, если их нет у пользователя.
     :param user_id: ID пользователя в Telegram.
     :return: Boolean значение удалось ли произвести действие.
     """
@@ -192,8 +193,8 @@ async def set_goal(user_id: str, goal: float) -> bool:
     return True
 
 
-async def add_income(user_id: str, value: float, name=None, type_of_income=None,
-                     date=time.strftime("%Y-%m-%d", time.gmtime())) -> bool:
+async def add_income(user_id: str, value: float, name: str = None, type_of_income: str = None,
+                     date: str = time.strftime("%Y-%m-%d", time.gmtime())) -> bool:
     """
     Добавляет доход пользователю.
     :param user_id: ID пользователя в Telegram.
@@ -253,8 +254,8 @@ async def add_event_income(user_id: str, value: float, name: str, day_of_income:
     return True
 
 
-async def add_spend(user_id: str, value: float, name=None, type_of_spend=None, category=None, subcategory=None,
-                    date=time.strftime("%Y-%m-%d", time.gmtime())) -> bool:
+async def add_spend(user_id: str, value: float, name: str = None, type_of_spend: str = None, category: str = None,
+                    subcategory: str = None, date: str = time.strftime("%Y-%m-%d", time.gmtime())) -> bool:
     """
     Добавляет трату пользователю.
     :param subcategory: Подкатегория траты.
@@ -286,8 +287,8 @@ async def add_spend(user_id: str, value: float, name=None, type_of_spend=None, c
     return True
 
 
-async def add_event_spend(user_id: str, value: float, name: str, day_of_spending: int, category=None,
-                          subcategory=None) -> bool:
+async def add_event_spend(user_id: str, value: float, name: str, day_of_spending: int, category: str = None,
+                          subcategory: str = None) -> bool:
     """
     Добавляет событие траты пользователю.
     :param subcategory: Подкатегория траты.
@@ -649,7 +650,7 @@ async def return_all_incomes(user_id: str) -> dict:
     return all_incomes
 
 
-async def return_spend_of_period(user_id: str, start: datetime, end: datetime, this_moths=False) -> dict:
+async def return_spend_of_period(user_id: str, start: datetime, end: datetime, this_moths: bool = False) -> dict:
     """
     Возвращает словарь с тратами за определенный период или за текущий месяц.
     :param user_id: ID пользователя в Telegram.
@@ -670,7 +671,7 @@ async def return_spend_of_period(user_id: str, start: datetime, end: datetime, t
     return spends_of_period
 
 
-async def return_incomes_of_period(user_id: str, start: datetime, end: datetime, this_moths=False) -> dict:
+async def return_incomes_of_period(user_id: str, start: datetime, end: datetime, this_moths: bool = False) -> dict:
     """
     Возвращает словарь с доходами за определенный период или за текущий месяц.
     :param user_id: ID пользователя в Telegram.
@@ -691,7 +692,7 @@ async def return_incomes_of_period(user_id: str, start: datetime, end: datetime,
     return incomes_of_period
 
 
-async def return_sum_income(user_id: str, start: datetime, end: datetime, this_moths=False) -> float:
+async def return_sum_income(user_id: str, start: datetime, end: datetime, this_moths: bool = False) -> float:
     """
     Возвращает сумму доходов за определенный период или текущий месяц.
     :param user_id: ID пользователя в Telegram.
@@ -708,7 +709,7 @@ async def return_sum_income(user_id: str, start: datetime, end: datetime, this_m
     return sum_income
 
 
-async def return_sum_spend(user_id: str, start: datetime, end: datetime, this_moths=False) -> float:
+async def return_sum_spend(user_id: str, start: datetime, end: datetime, this_moths: bool = False) -> float:
     """
     Возвращает сумму трат за определенный период или текущий месяц.
     :param user_id: ID пользователя в Telegram.
@@ -1193,7 +1194,8 @@ async def get_full_spends_of_user_by_categories(user_id: str, start: datetime, e
         return {}
 
 
-async def return_sum_income_ignore_remained(user_id: str, start: datetime, end: datetime, this_moths=False) -> float:
+async def return_sum_income_ignore_remained(user_id: str, start: datetime, end: datetime,
+                                            this_moths: bool = False) -> float:
     """
     Возвращает сумму доходов за определенный период или текущий месяц игнорируя остатки.
     :param user_id: ID пользователя в Telegram.

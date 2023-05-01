@@ -49,7 +49,10 @@ async def get_report_table(user_id: str, start: datetime, end: datetime) -> str:
         logging.error(f"{get_report_table.__name__}: {e}. Пользователь с id {user_id}.")
 
 
-async def _create_formats(book: xlwt.Workbook):
+async def _create_formats(book: xlwt.Workbook) -> {xlwt.Workbook.add_format, xlwt.Workbook.add_format,
+                                                   xlwt.Workbook.add_format, xlwt.Workbook.add_format,
+                                                   xlwt.Workbook.add_format, xlwt.Workbook.add_format,
+                                                   xlwt.Workbook.add_format}:
     """
     Функция, которая добавляет форматы для ячеек к книге.
     :param book: Книга, к которой мы будем добавлять форматы.
@@ -100,10 +103,13 @@ async def _create_formats(book: xlwt.Workbook):
     return category_format, date_format, income_format, name_format, spend_format, subcategory_format, up_format
 
 
-async def _create_report_worksheet(category_format, currency: str, date_format, end: datetime, income_format,
-                                   name_format, sheet_report: xlwt.Workbook.add_worksheet,
-                                   spend_format, spends_sums, start: datetime, subcategory_format, sum_income: float,
-                                   sum_spend: float):
+async def _create_report_worksheet(category_format: xlwt.Workbook.add_format, currency: str,
+                                   date_format: xlwt.Workbook.add_format, end: datetime,
+                                   income_format: xlwt.Workbook.add_format,
+                                   name_format: xlwt.Workbook.add_format, sheet_report: xlwt.Workbook.add_worksheet,
+                                   spend_format: xlwt.Workbook.add_format, spends_sums: xlwt.Workbook.add_format,
+                                   start: datetime, subcategory_format: xlwt.Workbook.add_format, sum_income: float,
+                                   sum_spend: float) -> None:
     """
     Функция создающая страницу с отчётом внутри книги.
     :param category_format: Формат ячеек категории.
@@ -164,7 +170,9 @@ async def _create_report_worksheet(category_format, currency: str, date_format, 
         row += 2
 
 
-async def _create_income_worksheet(currency: str, incomes: dict, sheet_incomes, subcategory_format, up_format):
+async def _create_income_worksheet(currency: str, incomes: dict, sheet_incomes: xlwt.Workbook.add_worksheet,
+                                   subcategory_format: xlwt.Workbook.add_format,
+                                   up_format: xlwt.Workbook.add_format) -> None:
     """
     Функция создающая страницу с доходами внутри книги.
     :param currency: Текущая валюта.
@@ -196,8 +204,10 @@ async def _create_income_worksheet(currency: str, incomes: dict, sheet_incomes, 
         row += 1
 
 
-async def _create_spend_worksheet(category_format, currency: str, sheet_spends, spends: dict, subcategory_format,
-                                  up_format):
+async def _create_spend_worksheet(category_format: xlwt.Workbook.add_format, currency: str,
+                                  sheet_spends: xlwt.Workbook.add_worksheet, spends: dict,
+                                  subcategory_format: xlwt.Workbook.add_format,
+                                  up_format: xlwt.Workbook.add_format) -> None:
     """
     Функция, которая создаёт страницу с тратами в книге.
     :param category_format: Формат ячеек с категориями.

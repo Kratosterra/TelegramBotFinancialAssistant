@@ -1,12 +1,12 @@
+import datetime
 import logging
 from calendar import monthrange
 
 from database import db_functions
 from texts.ru_RU import messages
-import datetime
 
 
-def _get_dates_of_period(start: datetime, end: datetime, this_moths=False) -> list:
+def _get_dates_of_period(start: datetime, end: datetime, this_moths: bool = False) -> list:
     """
     Возвращает все даты в определенном промежутке либо за текущий месяц.
     :param start: Начало временного промежутка.
