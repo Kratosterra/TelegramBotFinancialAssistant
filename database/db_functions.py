@@ -1060,7 +1060,8 @@ async def transfer_remained_from_past_months(user_id: str) -> bool:
                       f"пользователя с id: {user_id} в этом месяце.")
         return False
     if remained > 0:
-        status = await add_income(user_id, remained, f"Остаток с прошлого месяца", type_of_income="remained")
+        status = await add_income(user_id, remained, f"Остаток с прошлого месяца", type_of_income="remained",
+                                  date=time.strftime("%Y-%m-%d", time.gmtime()))
     else:
         logging.debug(f"{transfer_remained_from_past_months.__name__}: Предупреждение! Неположительный остаток для "
                       f"пользователя с id: {user_id}.")
