@@ -7,5 +7,5 @@ from config.config import TOKEN_API
 storage = MemoryStorage()
 # Создаём экземпляр бота.
 bot = Bot(TOKEN_API)
-# Создаём диспатчер, передавая ему экземпляр бота и экземпляр хранилища.
+# Создаём диспетчер, передавая ему экземпляр бота и экземпляр хранилища.
 dp = Dispatcher(bot, storage=storage)
