@@ -3,7 +3,7 @@ import logging
 import os
 
 from aiogram.dispatcher import FSMContext
-from aiogram.types import CallbackQuery
+from aiogram.types import CallbackQuery, InputFile
 
 from bot import dp
 from handlers.keyboards import inline_keybords
@@ -58,6 +58,31 @@ async def expand_small_report_button_handler(call: CallbackQuery, state: FSMCont
         logging.error(f"{expand_small_report_button_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
         await state.set_state(IncomeSpendForm.value)
 
+@dp.callback_query_handler(text_contains='picture:', state=ReportForm.small_report)
+async def send_graphics_report_button_handler(call: CallbackQuery, state: FSMContext) -> None:
+    """
+    Функция, которая отвечает за расширение текущего отчёта, показывает статистику с подкатегориями.
+    :type state: FSMContext
+    :type call: CallbackQuery
+    :param call: Запрос от кнопки
+    :param state: Состояние.
+    """
+    try:
+        logging.debug(f'Делаем графику для маленького отчёта. Пользователь с id {call.from_user.id}.')
+        date = call.data.split(':')
+        now = datetime.datetime.strptime(date[1], "%Y-%m-%d")
+        path = InputFile(await report.get_graphics_in_photo(call.from_user.id, now))
+        await call.message.answer_photo(photo=path, reply_markup=inline_keybords.clear_inline)
+        await call.answer()
+        try:
+            os.remove(f"temporary\\graphics\\{str(call.from_user.id)}.png")
+        except Exception as io_error:
+            logging.debug(f"{send_graphics_report_button_handler.__name__}: {io_error}."
+                          f" Пользователь с id {call.from_user.id}.")
+            pass
+    except Exception as e:
+        logging.error(f"{expand_small_report_button_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
+        await state.set_state(IncomeSpendForm.value)
 
 @dp.callback_query_handler(text_contains='less:', state=ReportForm.small_report)
 async def reduce_small_report_button_handler(call: CallbackQuery, state: FSMContext) -> None:

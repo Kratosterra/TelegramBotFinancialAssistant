@@ -1,6 +1,8 @@
 import datetime
 import logging
+import os
 
+import matplotlib.pyplot as plt
 from dateutil.relativedelta import relativedelta
 
 from database import db_functions
@@ -168,3 +170,40 @@ async def _get_spend_string(user_id: str, currency: str, start: datetime, end: d
         string = f"📉 Траты\: *Ошибка*"
         logging.error(f"{_get_spend_string.__name__}: {e}. Пользователь с id {user_id}.")
     return string
+
+
+async def get_graphics_in_photo(user_id: str, now: datetime) -> str:
+    """
+    Функция, которая возвращает путь к графику трат.
+    :param now: Дата
+    :param user_id: ID пользователя Telegram.
+    :return: Путь до файла.
+    """
+    path = f'temporary\\graphics\\{user_id}.png'
+    try:
+        if not os.path.exists('temporary'):
+            os.makedirs('temporary')
+        if not os.path.exists('temporary\\graphics'):
+            os.makedirs('temporary\\graphics')
+        start = datetime.date(now.year, now.month, 1)
+        end = start.replace(day=28) + datetime.timedelta(days=4)
+        end = end - datetime.timedelta(days=end.day)
+        data = await db_functions.get_spends_of_user_by_categories(user_id, start, end)
+        spending_by_category = {}
+        for category in data.keys():
+            if data[category]['$all'] == 0:
+                continue
+            if category == "$no_category":
+                spending_by_category['Без категории'] = data[category]['$all']
+                continue
+            spending_by_category[category] = data[category]['$all']
+        labels = list(spending_by_category.keys())
+        sizes = list(spending_by_category.values())
+        fig1, ax1 = plt.subplots()
+        ax1.pie(sizes, labels=labels, autopct='%1.1f%%', startangle=90)
+        ax1.axis('equal')
+        plt.title('Расходы по категориям')
+        fig1.savefig(path, dpi=300, bbox_inches='tight')
+    except Exception as e:
+        logging.error(f"{get_graphics_in_photo.__name__}: {e}. Пользователь с id {user_id}.")
+    return path

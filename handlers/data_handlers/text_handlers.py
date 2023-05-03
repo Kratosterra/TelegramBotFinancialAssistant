@@ -607,7 +607,7 @@ async def ignore_button_handler(call: CallbackQuery) -> None:
     """
     try:
         logging.debug(f'Игнорируем кнопку. Пользователь с id {call.from_user.id}.')
-        await call.answer("Недоступно!")
+        await call.answer("Недоступно! Завершите работу с текущим меню!")
     except Exception as e:
         logging.error(f"{ignore_button_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
         await IncomeSpendForm.value.set()

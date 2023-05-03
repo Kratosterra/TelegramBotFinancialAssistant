@@ -28,7 +28,7 @@ async def add_category_menu_button_handler(call: CallbackQuery) -> None:
         for key in categories:
             string += f"{num}) {key}\n"
             num += 1
-        await call.message.answer(f"Отправьте имя новой категории. Вот список текущих:\n{string}",
+        await call.message.answer(f"Вот список текущих категорий:\n{string}\n\nОтправьте имя новой категории.",
                                   disable_notification=True,
                                   reply_markup=inline_keybords.refuse_to_input)
     except Exception as e:
@@ -404,7 +404,7 @@ async def add_subcategory_category_button_handler(call: CallbackQuery, state: FS
         for key in categories[str(category)]:
             string += f"{num}) {key}\n"
             num += 1
-        await call.message.answer(f"Отправьте имя новой подкатегории. Вот список текущих:\n{string}",
+        await call.message.answer(f"Вот список текущих подкатегорий:\n{string}\n\nОтправьте имя новой подкатегории.",
                                   disable_notification=True, reply_markup=inline_keybords.refuse_to_input)
     except Exception as e:
         logging.error(f"{add_subcategory_category_button_handler.__name__}: {e}."

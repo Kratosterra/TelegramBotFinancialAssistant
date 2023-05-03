@@ -136,8 +136,8 @@ income_spend_category_inline = InlineKeyboardMarkup(
             InlineKeyboardButton(text="📝 Новая Подкатегория", callback_data="add:subcategory:button"),
         ],
         [
-            InlineKeyboardButton(text="🗑 Категорию", callback_data="delete:category:button"),
-            InlineKeyboardButton(text="🗑 Подкатегорию", callback_data="delete:subcategory:button"),
+            InlineKeyboardButton(text="🗑 Удал. Категорию", callback_data="delete:category:button"),
+            InlineKeyboardButton(text="🗑 Удал. Подкатегорию", callback_data="delete:subcategory:button"),
         ],
         [
             InlineKeyboardButton(text="❌ Назад", callback_data="cancel"),
@@ -386,6 +386,8 @@ async def create_report_keyboard_small(current_day: datetime, small: bool = True
         keyboard.insert(InlineKeyboardButton("📊 Показать с подкатегориями", callback_data=f"more:{now_string}"))
     else:
         keyboard.insert(InlineKeyboardButton("📊 Показать кратко", callback_data=f"less:{now_string}"))
+    keyboard.row()
+    keyboard.insert(InlineKeyboardButton("📈 Отправить график", callback_data=f"picture:{now_string}"))
     keyboard.row()
     back = current_day + relativedelta(months=-1)
     keyboard.insert(InlineKeyboardButton(text="⬅️ Прошлый месяц", callback_data=f"change:{back.strftime('%Y-%m-%d')}"))

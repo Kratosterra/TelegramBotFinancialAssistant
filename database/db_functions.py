@@ -1088,6 +1088,7 @@ async def return_all_events_spends(user_id: str) -> dict:
             all_spend[row[0]]["category"] = row[2]
             all_spend[row[0]]["sub_category"] = row[3]
             all_spend[row[0]]["day_of_spending"] = row[4]
+            all_spend[row[0]]["last_indexed"] = row[5]
     except sqlite3.Error as error:
         logging.error(
             f"{return_all_events_spends.__name__}: Ошибка при работе с базой данных: '{error}'."
@@ -1116,6 +1117,7 @@ async def return_all_events_income(user_id: str) -> dict:
             all_income[row[0]]["name_of_income"] = row[0]
             all_income[row[0]]["value_of_income"] = row[1]
             all_income[row[0]]["day_of_income"] = row[2]
+            all_income[row[0]]["last_indexed"] = row[3]
     except sqlite3.Error as error:
         logging.error(
             f"{return_all_events_income.__name__}: Ошибка при работе с базой данных: '{error}'."
