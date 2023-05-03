@@ -40,9 +40,10 @@
 > - **os** - _PSF LICENSE_
 > - **pathlib** - _Apache License 2.0_
 
-> Запись файлов в формате таблиц
+> Запись файлов в формате таблиц и графика
 > - **csv** - _PSF LICENSE_
 > - **xlsxwriter** - _BSD 2-Clause License_
+> - **matplotlib** - _License agreement for matplotlib versions 1.3.0 and later_
 
 > Компьютерное зрение
 > - **cv2** - _MIT license_
