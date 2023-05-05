@@ -910,7 +910,7 @@ async def check_goal(user_id: str) -> bool or None:
 
 async def check_limit(user_id: str) -> bool or None:
     """
-    Выполнена ли цель по средствам.
+    Выполнен ли лимит по средствам.
     :param user_id: ID пользователя Telegram.
     :return: Выполнена ли цель по средствам.
     """

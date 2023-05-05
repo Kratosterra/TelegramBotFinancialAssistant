@@ -58,10 +58,11 @@ async def expand_small_report_button_handler(call: CallbackQuery, state: FSMCont
         logging.error(f"{expand_small_report_button_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
         await state.set_state(IncomeSpendForm.value)
 
+
 @dp.callback_query_handler(text_contains='picture:', state=ReportForm.small_report)
 async def send_graphics_report_button_handler(call: CallbackQuery, state: FSMContext) -> None:
     """
-    Функция, которая отвечает за расширение текущего отчёта, показывает статистику с подкатегориями.
+    Функция, которая отвечает за отправку графика пользователю в чат.
     :type state: FSMContext
     :type call: CallbackQuery
     :param call: Запрос от кнопки
@@ -83,6 +84,7 @@ async def send_graphics_report_button_handler(call: CallbackQuery, state: FSMCon
     except Exception as e:
         logging.error(f"{expand_small_report_button_handler.__name__}: {e}. Пользователь с id {call.from_user.id}.")
         await state.set_state(IncomeSpendForm.value)
+
 
 @dp.callback_query_handler(text_contains='less:', state=ReportForm.small_report)
 async def reduce_small_report_button_handler(call: CallbackQuery, state: FSMContext) -> None:

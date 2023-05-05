@@ -8,7 +8,7 @@ class IncomeSpendForm(StatesGroup):
     # Хранит значение
     value = State()
     # Является ли сумма тратой
-    isSpend = State()
+    is_spend = State()
     # Имя суммы
     name = State()
     # Категория траты

@@ -12,6 +12,7 @@ from texts.ru_RU import messages
 def _get_past_months_from_date(date: datetime) -> list:
     """
     Возвращает лист размера 2, с первой датой прошлого месяца и последней датой прошлого месяца
+    :param date: Дата для установления текущего месяца.
     :return: Лист из двух datetime.
     """
     today = date

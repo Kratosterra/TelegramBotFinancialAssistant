@@ -28,7 +28,7 @@ class SettingsForm(StatesGroup):
     # Меню добавления события
     event_menu = State()
     # Является ли сумма тратой
-    isSpend = State()
+    is_spend_event = State()
     # Имя суммы
     name = State()
     # Категория траты

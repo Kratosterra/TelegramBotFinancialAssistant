@@ -481,7 +481,7 @@ async def add_event_income_type_button_handler(call: CallbackQuery, state: FSMCo
     try:
         await call.message.delete()
         logging.debug(f'Добавление событие доходов. Запрос на сумму. Пользователь с id {call.from_user.id}.')
-        await state.update_data(isSpend=False)
+        await state.update_data(is_spend_event=False)
         await SettingsForm.value.set()
         await call.message.answer(
             "Отправьте число\, которое представляет средства, которые будут добавляться в бюджет\.\n"
@@ -506,7 +506,7 @@ async def add_event_spend_type_button_handler(call: CallbackQuery, state: FSMCon
     try:
         await call.message.delete()
         logging.debug(f'Добавление событие трат. Запрос на сумму. Пользователь с id {call.from_user.id}.')
-        await state.update_data(isSpend=True)
+        await state.update_data(is_spend_event=True)
         await SettingsForm.value.set()
         await call.message.answer(
             "Отправьте число\, которое представляет средства, которые будут учтены как траты в бюджет\.\n"
@@ -540,7 +540,7 @@ async def process_sum_event_message_handler(message: types.Message, state: FSMCo
             await message.delete()
             await state.update_data(value=value)
             await SettingsForm.event_menu.set()
-            if (await state.get_data())['isSpend']:
+            if (await state.get_data())['is_spend_event']:
                 await message.answer(
                     f"Событие траты на {value} {await db_functions.get_user_currency(str(message.from_user.id))}\n"
                     "Обязательно добавьте имя и день события!",
@@ -608,7 +608,7 @@ async def add_name_message_handler(message: types.Message, state: FSMContext) ->
             await message.delete()
             name = str(message.text)
             name = re.sub(r'[^\w\s]', '', name)
-            if (await state.get_data())['isSpend']:
+            if (await state.get_data())['is_spend_event']:
                 if name in (await db_functions.return_all_events_spends(str(message.from_user.id))):
                     await message.answer(
                         "Имя суммы не должно быть уже использовано в событии трат!",
@@ -704,7 +704,7 @@ async def add_day_button_handler(call: CallbackQuery) -> None:
 @dp.callback_query_handler(text_contains='choice:day:', state=SettingsForm.date)
 async def on_day_button_handler(call: CallbackQuery, state: FSMContext) -> None:
     """
-    Функция, которая отвечает за удаление события.
+    Функция, которая отвечает за выбор дня события.
     :type state: FSMContext
     :type call: CallbackQuery
     :param call: Запрос от кнопки
@@ -742,7 +742,7 @@ async def add_event_proceed_button_handler(call: CallbackQuery, state: FSMContex
         value = main_data['value']
         name = main_data['name']
         date = main_data['date']
-        if not main_data['isSpend']:
+        if not main_data['is_spend_event']:
             st = await db_functions.add_event_income(user_id=str(call.from_user.id), value=value, name=name,
                                                      day_of_income=date)
         else:

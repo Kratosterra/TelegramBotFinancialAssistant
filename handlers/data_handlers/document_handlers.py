@@ -85,7 +85,7 @@ async def on_photo_from_user_handler(message: types.Message, state: FSMContext) 
                     reply_markup=inline_keybords.clear_inline)
                 return
             sum_value = float(data[data.find("&s=") + 3:data.find("&fn=")])
-            await IncomeSpendForm.isSpend.set()
+            await IncomeSpendForm.is_spend.set()
             if float(sum_value) > 10000000000 or float(sum_value) < 0.01:
                 await message.answer("*Это уже слишком для меня!*\n\n"
                                      "_Полученная сумма либо крайне маленькая\, либо большая\!_",

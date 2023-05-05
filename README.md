@@ -27,6 +27,7 @@
 > - **bs4** - _MIT license_
 
 > Хранение данных и логирование
+>- **coloredlogs** - _MIT License_
 >- **logging** - _Apache License 2.0_
 >- **sqlite3** - _MIT License_
 
