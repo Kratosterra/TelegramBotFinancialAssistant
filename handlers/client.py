@@ -174,7 +174,7 @@ async def on_files(message: types.Message, state: FSMContext) -> None:
 
 
 @dp.message_handler(content_types=["audio", "sticker", "video", "video_note", "voice", "location", "contact"],
-                    state=IncomeSpendForm.value)
+                    state='*')
 async def on_all_not_command_message(message: types.Message, state: FSMContext) -> None:
     """
     Функция, отвечающая пользователю на непредусмотренный тип входных данных.
@@ -189,7 +189,9 @@ async def on_all_not_command_message(message: types.Message, state: FSMContext) 
         await IncomeSpendForm.value.set()
         return
     logging.debug(f"Получил неизвестный тип сообщения. Пользователь с id {message.from_user.id}.")
-    await message.answer(text=messages.not_in_bot_message, parse_mode="MarkdownV2")
+    if current_state == IncomeSpendForm.value.state:
+        await message.answer(text=messages.not_in_bot_message, parse_mode="MarkdownV2")
+    await message.delete()
 
 
 def register_client() -> None:
